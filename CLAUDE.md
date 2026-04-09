@@ -19,9 +19,7 @@
 9. [Database Schema](#database-schema)
 10. [Recommendation Engine](#recommendation-engine)
 11. [Rubric Mapping](#rubric-mapping)
-12. [Build Phases](#build-phases)
-13. [Team Responsibilities](#team-responsibilities)
-14. [Submission Checklist](#submission-checklist)
+12. [Submission Checklist](#submission-checklist)
 
 ---
 
@@ -81,11 +79,12 @@ Deciding what to watch is overwhelming — streaming platforms surface algorithm
 - Link to full cast and crew page
 
 ### 4. Recommendation Engine *(new technology)*
-
-- Content-based filtering using genre vectors, decade, and cast/director overlap
-- Cosine similarity computed across movies in user's watch history
+ 
+- Semantic similarity powered by OpenAI `text-embedding-3-small` model
+- Each movie's overview + genres + director are embedded into a vector on first watch and cached in the DB
+- A user profile vector is computed by averaging all watched movie embeddings
+- Candidate movies (trending + popular from TMDB, not yet watched) are scored by cosine similarity against the profile vector
 - Recommendation feed shown on home page and dedicated `/recommendations` page
-- Implemented using `ml-matrix` npm package (see [Recommendation Engine](#recommendation-engine))
 
 ### 5. Taste Dashboard
 
@@ -116,14 +115,16 @@ Deciding what to watch is overwhelming — streaming platforms surface algorithm
 | Database      | SQLite (via `better-sqlite3`)       |
 | External API  | TMDB API (free tier)                |
 | Auth          | JWT + bcrypt                        |
-| New Tech      | `ml-matrix` (recommendation engine) |
+| New Tech      | OpenAI Embeddings API (`text-embedding-3-small`)  |
 
 > **Why SQLite?** Zero setup, file-based, works out of the box on any machine for demo and grading purposes.
 
+> **Why OpenAI embeddings?** `text-embedding-3-small` is cheap (fractions of a cent per request at this scale), production-grade, and semantically richer than hand-crafted genre vectors. Embedding vectors are generated once per movie and cached in the DB, so the API is rarely called after initial setup.
+
 ---
-
+ 
 ## Application Structure
-
+ 
 ```
 cinematch/
 ├── client/                   # Vue 3 frontend
@@ -190,7 +191,7 @@ cinematch/
 │   │   ├── schema.sql
 │   │   └── database.js
 │   ├── services/
-│   │   └── recommender.js     # ML recommendation engine
+│   │   └── recommender.js     # OpenAI embedding-based recommendation engine
 │   └── index.js
 │
 ├── group_members.html
@@ -200,11 +201,11 @@ cinematch/
 ├── package.json
 └── README.md
 ```
-
+ 
 ---
-
+ 
 ## Vue Component Tree
-
+ 
 ```
 App.vue
 ├── NavBar.vue
@@ -248,6 +249,9 @@ App.vue
 │
 └── Footer.vue
 ```
+ 
+---
+
 
 ---
 
