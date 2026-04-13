@@ -29,6 +29,10 @@ export function discoverMovies(filters = {}, page = 1) {
   return get('discover/movie', params)
 }
 
+export function getMovieDetails(id) {
+  return get(`movie/${id}`, { append_to_response: 'credits,videos,similar' })
+}
+
 export function getGenres() {
   return get('genre/movie/list')
 }
@@ -37,4 +41,4 @@ export function posterUrl(path) {
   return path ? `${IMAGE_BASE}${path}` : null
 }
 
-export default { get, searchMovies, getTrending, discoverMovies, getGenres, posterUrl }
+export default { get, searchMovies, getTrending, discoverMovies, getMovieDetails, getGenres, posterUrl }
