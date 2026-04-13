@@ -444,6 +444,12 @@ OPENAI_API_KEY=sk-...
 ---
 ---
 
+## UI Inspiration and Theme
+
+The UI follows a modern aesthetic, using a minimalist, component-driven design system inspired by shadcn/ui combined with elements similar to Netflix's UI design. The layout is structured around reusable, card-based components with consistent spacing, subtle borders, and soft shadows to create a clean and low-noise visual hierarchy. The interface emphasizes usability and clarity, resembling an operating system or workspace environment rather than a traditional marketing site. Overall, the design reflects current best practices in frontend development, prioritizing responsiveness, modularity, and a polished, developer-centric user experience.
+
+https://cut-os.vercel.app/  
+
 ## Rubric Mapping
 
 | Requirement          | Implementation                                                                 | Marks |
@@ -455,7 +461,7 @@ OPENAI_API_KEY=sk-...
 | AJAX & web services  | TMDB API (search, details, trailers, similar); own REST API for user data      | 1.0   |
 | Node / Express       | Express REST API: auth, watchlist, history, recommendations endpoints          | 1.5   |
 | Vue framework        | Composition API components, Vue Router, Pinia stores, reactive data binding    | 2.5   |
-| New technology       | Content-based ML recommendation engine using `ml-matrix` npm package           | 1.0   |
+| New technology       | Semantic recommendation engine using OpenAI `text-embedding-3-small` API           | 1.0   |
 | Intro video          | 3–5 min screen recording demonstrating all features and technologies            | 4.0   |
 | **Total**            |                                                                                | **10.0** |
 
