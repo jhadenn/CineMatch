@@ -2,6 +2,10 @@
 
 const BASE = '/api'
 
+/**
+ * Shared wrapper for CineMatch backend requests.
+ * It attaches the JWT from localStorage when present and assumes JSON bodies.
+ */
 async function request(method, path, body) {
   const token = localStorage.getItem('token')
   const res = await fetch(`${BASE}${path}`, {

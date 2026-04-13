@@ -128,6 +128,7 @@ const error = ref(false)
 
 const heroImage = computed(() => {
   if (!movie.value) return null
+  // Prefer the wide backdrop for the hero, then fall back to the poster.
   if (movie.value.backdrop_path) return `https://image.tmdb.org/t/p/w1280${movie.value.backdrop_path}`
   if (movie.value.poster_path) return `https://image.tmdb.org/t/p/w1280${movie.value.poster_path}`
   return null
@@ -148,6 +149,7 @@ function formatRuntime(minutes) {
 }
 
 async function fetchMovie(id) {
+  // Reset local state before each request so route changes show a clean loader.
   loading.value = true
   error.value = false
   movie.value = null
@@ -160,7 +162,8 @@ async function fetchMovie(id) {
   }
 }
 
-// Fetch on mount and when route param changes (clicking similar movies)
+// Re-run the fetch when the route changes so clicking "More Like This" cards
+// updates the current detail page instead of forcing a full page reload.
 watch(() => route.params.id, (id) => {
   if (id) {
     fetchMovie(id)

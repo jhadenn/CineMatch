@@ -71,6 +71,7 @@ onMounted(() => {
         emit('load-more')
       }
     },
+    // Start loading before the user reaches the exact bottom of the grid.
     { rootMargin: '200px' }
   )
   if (sentinel.value) observer.observe(sentinel.value)

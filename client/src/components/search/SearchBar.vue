@@ -45,6 +45,7 @@ defineProps({
 const emit = defineEmits(['update:modelValue', 'search'])
 const inputEl = ref(null)
 
+// Debounce typing so parent views do not hit TMDB on every keystroke.
 let debounceTimer = null
 
 function onInput(e) {
@@ -58,6 +59,7 @@ function onInput(e) {
 }
 
 function clear() {
+  clearTimeout(debounceTimer)
   emit('update:modelValue', '')
   emit('search', '')
   inputEl.value?.focus()

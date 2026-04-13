@@ -47,6 +47,8 @@ const route = useRoute()
 const router = useRouter()
 const searchQuery = ref('')
 
+// The page switches between browse-mode cards and search-mode cards based on
+// whether the search box currently contains text.
 const displayedMovies = computed(() =>
   searchQuery.value.trim() ? store.searchResults : store.trending
 )
@@ -61,6 +63,7 @@ const resultText = computed(() => {
 onMounted(async () => {
   await store.fetchGenres()
 
+  // Rehydrate the page from the URL so refreshes/bookmarks keep the same query.
   const q = route.query.q || ''
   if (q) {
     searchQuery.value = q
@@ -71,6 +74,7 @@ onMounted(async () => {
 })
 
 watch(searchQuery, (q) => {
+  // Keep the route query in sync so the current search state is shareable.
   const current = route.query.q || ''
   if (q !== current) {
     router.replace({ query: q.trim() ? { q } : {} })
@@ -82,6 +86,7 @@ function onSearch(query) {
   if (query.trim()) {
     store.searchMovies(query)
   } else {
+    // Returning to an empty search box means switching back to browse mode.
     store.clearSearch()
     if (store._trending.length === 0) store.loadTrending()
   }

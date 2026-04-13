@@ -4,6 +4,9 @@
 const BASE = '/api/tmdb'
 const IMAGE_BASE = 'https://image.tmdb.org/t/p/w500'
 
+/**
+ * Low-level TMDB fetch wrapper used by the more specific service helpers below.
+ */
 async function get(path, params = {}) {
   const query = new URLSearchParams(params).toString()
   const url = `${BASE}/${path}${query ? `?${query}` : ''}`
@@ -21,6 +24,7 @@ export function getTrending(page = 1) {
 }
 
 export function discoverMovies(filters = {}, page = 1) {
+  // Discover mode supports richer server-side filtering than text search.
   const params = { page, sort_by: 'popularity.desc' }
   if (filters.genre) params.with_genres = filters.genre
   if (filters.yearFrom) params['primary_release_date.gte'] = `${filters.yearFrom}-01-01`
@@ -38,6 +42,7 @@ export function getGenres() {
 }
 
 export function posterUrl(path) {
+  // Components can treat `null` as "show the no-poster fallback UI".
   return path ? `${IMAGE_BASE}${path}` : null
 }
 

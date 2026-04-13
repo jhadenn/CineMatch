@@ -8,6 +8,8 @@ import RecommendationsView from '../views/RecommendationsView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 
+// All routes are currently public. Auth guards can be layered on top here when
+// login/register endpoints are fully implemented.
 const routes = [
   { path: '/',               component: HomeView },
   { path: '/search',         component: SearchView },

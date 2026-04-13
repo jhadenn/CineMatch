@@ -3,7 +3,12 @@ const db = require('../db/database');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Generate and cache an embedding for a movie
+/**
+ * Generate and cache an embedding for a movie-like object.
+ *
+ * Cached embeddings keep recommendation requests cheap after the first run for
+ * a given TMDB id.
+ */
 async function getEmbedding(movie) {
   const existing = db.prepare(
     'SELECT embedding FROM movie_embeddings WHERE tmdb_id = ?'
@@ -11,6 +16,7 @@ async function getEmbedding(movie) {
 
   if (existing) return JSON.parse(existing.embedding);
 
+  // Pack the fields that best describe "taste" into one embedding prompt.
   const input = `${movie.title}. ${movie.overview}. Genres: ${movie.genres.join(', ')}. Director: ${movie.director ?? 'Unknown'}.`;
   const response = await openai.embeddings.create({
     model: 'text-embedding-3-small',
@@ -25,7 +31,10 @@ async function getEmbedding(movie) {
   return vector;
 }
 
-// Cosine similarity between two vectors
+/**
+ * Standard cosine similarity for embedding vectors.
+ * Higher values mean the candidate points in a more similar direction.
+ */
 function cosineSimilarity(a, b) {
   const dot = a.reduce((sum, val, i) => sum + val * b[i], 0);
   const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
@@ -33,7 +42,9 @@ function cosineSimilarity(a, b) {
   return dot / (magA * magB);
 }
 
-// Average a list of vectors into one profile vector
+/**
+ * Collapse a list of movie embeddings into one average taste-profile vector.
+ */
 function averageVectors(vectors) {
   const len = vectors[0].length;
   const sum = new Array(len).fill(0);
@@ -42,6 +53,10 @@ function averageVectors(vectors) {
 }
 
 // Main export — called by GET /api/recommendations
+/**
+ * Score candidate movies against the user's watched-movie profile.
+ * If the user has no history yet, fall back to a simple top slice.
+ */
 async function getRecommendations(watchedMovies, candidates) {
   if (watchedMovies.length === 0) return candidates.slice(0, 10);
 

@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { searchMovies, getTrending, discoverMovies, getGenres } from '../services/tmdb.js'
 
+/**
+ * Filters influence both search and browse mode, so this helper is reused by
+ * the store and by the client-side search-result filter.
+ */
 function hasActiveFilters(filters) {
   return filters.genre || filters.yearFrom || filters.yearTo || filters.minRating > 0
 }
@@ -16,7 +20,7 @@ function filterMovies(movies, filters) {
     if (genre && !(movie.genre_ids || []).includes(genre)) return false
 
     const year = movie.release_date
-      ? parseInt(movie.release_date.substring(0, 4))
+      ? parseInt(movie.release_date.substring(0, 4), 10)
       : null
     if (yearFrom && (!year || year < yearFrom)) return false
     if (yearTo && (!year || year > yearTo)) return false
@@ -24,6 +28,14 @@ function filterMovies(movies, filters) {
 
     return true
   })
+}
+
+function mergeUniqueMovies(existingMovies, incomingMovies) {
+  const existingIds = new Set(existingMovies.map(movie => movie.id))
+  return [
+    ...existingMovies,
+    ...incomingMovies.filter(movie => !existingIds.has(movie.id)),
+  ]
 }
 
 export const useMoviesStore = defineStore('movies', {
@@ -45,13 +57,13 @@ export const useMoviesStore = defineStore('movies', {
   }),
 
   getters: {
-    // Browse mode: _trending already contains the right results
-    // (either from trending or discover), no client-side filter needed.
+    // Browse mode already loads the correct list from either `trending` or
+    // `discover`, so no extra client-side filtering is needed here.
     trending(state) {
       return state._trending
     },
-    // Search mode: apply client-side filters since TMDB search
-    // doesn't support genre/year/rating params.
+    // Search mode applies extra client-side filters because TMDB's text-search
+    // endpoint does not accept genre/year/rating parameters.
     searchResults(state) {
       return filterMovies(state._searchResults, state.filters)
     },
@@ -59,12 +71,14 @@ export const useMoviesStore = defineStore('movies', {
 
   actions: {
     async fetchGenres() {
+      // Genre metadata is effectively static for a session, so cache it.
       if (this.genres.length) return
       const data = await getGenres()
       this.genres = data.genres || []
     },
 
     async searchMovies(query) {
+      // A fresh search always restarts pagination from page 1.
       this.query = query
       this.currentPage = 1
       this.loading = true
@@ -79,6 +93,8 @@ export const useMoviesStore = defineStore('movies', {
     },
 
     async loadTrending() {
+      // Browse mode uses `discover` only when filters are active; otherwise it
+      // shows the TMDB weekly trending feed.
       this.currentPage = 1
       this.loading = true
       try {
@@ -98,6 +114,7 @@ export const useMoviesStore = defineStore('movies', {
       this.currentPage++
       this.loading = true
       try {
+        // Decide which endpoint to paginate based on the active UI mode.
         const isSearch = this.query.trim().length > 0
         let data
         if (isSearch) {
@@ -110,17 +127,9 @@ export const useMoviesStore = defineStore('movies', {
 
         const newMovies = data.results || []
         if (isSearch) {
-          const existing = new Set(this._searchResults.map(m => m.id))
-          this._searchResults = [
-            ...this._searchResults,
-            ...newMovies.filter(m => !existing.has(m.id)),
-          ]
+          this._searchResults = mergeUniqueMovies(this._searchResults, newMovies)
         } else {
-          const existing = new Set(this._trending.map(m => m.id))
-          this._trending = [
-            ...this._trending,
-            ...newMovies.filter(m => !existing.has(m.id)),
-          ]
+          this._trending = mergeUniqueMovies(this._trending, newMovies)
         }
         this.hasMore = data.page < data.total_pages
       } finally {
@@ -131,16 +140,17 @@ export const useMoviesStore = defineStore('movies', {
     setFilters(filters) {
       this.filters = { ...this.filters, ...filters }
       if (this.query.trim()) {
-        // Search mode: re-run the search so the client-side getter
-        // filters against a fresh page-1 result set.
+        // Search mode re-fetches page 1 so client-side filters apply to a fresh
+        // unpaginated base result set.
         this.searchMovies(this.query)
       } else {
-        // Browse mode: reload via discover (or trending if no filters).
+        // Browse mode reloads via discover, or trending if filters are cleared.
         this.loadTrending()
       }
     },
 
     clearSearch() {
+      // Reset back to the browse-mode baseline.
       this.query = ''
       this._searchResults = []
       this.currentPage = 1

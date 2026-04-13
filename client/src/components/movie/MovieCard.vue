@@ -54,11 +54,13 @@ const props = defineProps({
   movie: { type: Object, required: true },
 })
 
+// Keep the component presentation-only by deriving all display labels here.
 const poster = computed(() => posterUrl(props.movie.poster_path))
 const releaseYear = computed(() =>
   props.movie.release_date ? props.movie.release_date.substring(0, 4) : '—'
 )
 const rating = computed(() =>
+  // TMDB may omit vote_average on edge-case records.
   props.movie.vote_average ? props.movie.vote_average.toFixed(1) : 'N/A'
 )
 </script>

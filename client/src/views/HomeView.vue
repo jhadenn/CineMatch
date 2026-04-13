@@ -27,6 +27,7 @@ const router = useRouter()
 const searchQuery = ref('')
 
 onMounted(() => {
+  // Preserve previously loaded browse results when the user navigates back home.
   if (store._trending.length === 0) {
     store.loadTrending()
   }
@@ -39,6 +40,7 @@ function onSearch(query) {
 }
 
 function loadMore() {
+  // Home only paginates browse-mode results, never active search results.
   if (!store.query.trim()) {
     store.loadMore()
   }

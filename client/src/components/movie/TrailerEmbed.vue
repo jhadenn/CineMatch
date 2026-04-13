@@ -28,6 +28,7 @@ const props = defineProps({
 })
 
 const trailerKey = computed(() => {
+  // Prefer the official YouTube trailer when TMDB returns multiple video types.
   const trailer = props.videos.find(
     v => v.type === 'Trailer' && v.site === 'YouTube'
   )

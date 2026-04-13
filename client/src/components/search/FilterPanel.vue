@@ -80,12 +80,14 @@ const emit = defineEmits(['update', 'clear'])
 
 const currentYear = new Date().getFullYear()
 
+// The clear button should only appear when at least one filter changes the query.
 const hasActiveFilters = computed(() => {
   const f = props.filters
   return f.genre || f.yearFrom || f.yearTo || f.minRating > 0
 })
 
 function update(key, value) {
+  // Emit a partial patch object so the store can merge it with existing filters.
   emit('update', { [key]: value })
 }
 </script>

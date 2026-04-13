@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
 
+/**
+ * Verify a bearer token and expose the decoded JWT payload on `req.user`.
+ * Downstream handlers can assume authentication once this middleware passes.
+ */
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

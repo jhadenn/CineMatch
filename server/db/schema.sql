@@ -1,4 +1,4 @@
--- Users
+-- Core account table. Each row represents one CineMatch user.
 CREATE TABLE IF NOT EXISTS users (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   email       TEXT UNIQUE NOT NULL,
@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS users (
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Watchlist
+-- Ordered queue of movies the user wants to watch later.
+-- `position` supports drag-and-drop or manual reordering in the UI.
 CREATE TABLE IF NOT EXISTS watchlist (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id     INTEGER NOT NULL REFERENCES users(id),
@@ -19,7 +20,9 @@ CREATE TABLE IF NOT EXISTS watchlist (
   UNIQUE(user_id, tmdb_id)
 );
 
--- Watch history
+-- Movies the user has already watched.
+-- Recommendation jobs read the denormalized metadata here directly instead of
+-- having to re-fetch every title from TMDB.
 CREATE TABLE IF NOT EXISTS watch_history (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id      INTEGER NOT NULL REFERENCES users(id),
@@ -33,7 +36,7 @@ CREATE TABLE IF NOT EXISTS watch_history (
   UNIQUE(user_id, tmdb_id)
 );
 
--- Shared watchlist tokens
+-- Tokens backing public/shared watchlist links.
 CREATE TABLE IF NOT EXISTS watchlist_shares (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id    INTEGER NOT NULL REFERENCES users(id),
@@ -41,7 +44,8 @@ CREATE TABLE IF NOT EXISTS watchlist_shares (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Cached OpenAI embedding vectors (1536 dimensions, stored as JSON)
+-- Cached OpenAI embedding vectors (1536 dimensions, stored as JSON).
+-- This avoids paying for the same embedding request more than once.
 CREATE TABLE IF NOT EXISTS movie_embeddings (
   tmdb_id   INTEGER PRIMARY KEY,
   embedding TEXT NOT NULL

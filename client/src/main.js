@@ -4,6 +4,7 @@ import router from './router/index.js'
 import App from './App.vue'
 import './assets/main.css'
 
+// Global app bootstrap lives here so shared plugins are easy to spot.
 const app = createApp(App)
 
 app.use(createPinia())

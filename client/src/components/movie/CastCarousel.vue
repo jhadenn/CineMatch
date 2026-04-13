@@ -39,5 +39,6 @@ const props = defineProps({
   cast: { type: Array, default: () => [] },
 })
 
+// Keep the cast strip readable by showing the most prominent names first.
 const topCast = computed(() => props.cast.slice(0, 15))
 </script>
