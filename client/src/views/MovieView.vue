@@ -64,6 +64,14 @@
             </svg>
             {{ movie.vote_average?.toFixed(1) }}
           </span>
+          <button
+            type="button"
+            class="px-3 py-1 rounded-full border border-violet-400/40 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isInWatchlist"
+            @click="addCurrentMovieToWatchlist"
+          >
+            {{ isInWatchlist ? 'In Watchlist' : '+ Add to Watchlist' }}
+          </button>
         </div>
       </div>
     </div>
@@ -117,11 +125,13 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getMovieDetails } from '../services/tmdb.js'
+import { useWatchlistStore } from '../stores/watchlist.js'
 import TrailerEmbed from '../components/movie/TrailerEmbed.vue'
 import CastCarousel from '../components/movie/CastCarousel.vue'
 import MovieCard from '../components/movie/MovieCard.vue'
 
 const route = useRoute()
+const watchlistStore = useWatchlistStore()
 const movie = ref(null)
 const loading = ref(true)
 const error = ref(false)
@@ -141,6 +151,10 @@ const releaseYear = computed(() =>
 const similarMovies = computed(() =>
   (movie.value?.similar?.results || []).slice(0, 12)
 )
+const isInWatchlist = computed(() => {
+  if (!movie.value?.id) return false
+  return watchlistStore.items.some(item => Number(item.tmdb_id) === Number(movie.value.id))
+})
 
 function formatRuntime(minutes) {
   const h = Math.floor(minutes / 60)
@@ -155,11 +169,17 @@ async function fetchMovie(id) {
   movie.value = null
   try {
     movie.value = await getMovieDetails(id)
+    await watchlistStore.initialize()
   } catch {
     error.value = true
   } finally {
     loading.value = false
   }
+}
+
+function addCurrentMovieToWatchlist() {
+  if (!movie.value) return
+  watchlistStore.addMovie(movie.value)
 }
 
 // Re-run the fetch when the route changes so clicking "More Like This" cards

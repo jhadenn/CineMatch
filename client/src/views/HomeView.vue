@@ -51,10 +51,13 @@
               Watch Trailer
             </RouterLink>
             <button
+              v-if="featuredMovie"
               type="button"
-              class="px-5 py-2.5 rounded-lg bg-white/10 text-white font-medium border border-white/20 hover:bg-white/20 transition-colors"
+              class="px-5 py-2.5 rounded-lg bg-white/10 text-white font-medium border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              :disabled="isFeaturedInWatchlist"
+              @click="addFeaturedToWatchlist"
             >
-              + Add to Watchlist
+              {{ isFeaturedInWatchlist ? 'In Watchlist' : '+ Add to Watchlist' }}
             </button>
             <RouterLink
               v-if="featuredMovie"
@@ -82,10 +85,12 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useMoviesStore } from '../stores/movies.js'
+import { useWatchlistStore } from '../stores/watchlist.js'
 import { backdropUrl } from '../services/tmdb.js'
 import MovieGrid from '../components/movie/MovieGrid.vue'
 
 const store = useMoviesStore()
+const watchlistStore = useWatchlistStore()
 const featuredMovieId = ref(null)
 
 onMounted(async () => {
@@ -93,6 +98,7 @@ onMounted(async () => {
   if (store._trending.length === 0) {
     await store.loadTrending()
   }
+  await watchlistStore.initialize()
   pickRandomFeaturedMovie()
   store.fetchGenres()
 })
@@ -116,6 +122,10 @@ const matchLabel = computed(() => {
   const score = featuredMovie.value?.vote_average ? Math.min(99, Math.round(featuredMovie.value.vote_average * 10)) : 95
   return `${score}% Match For You`
 })
+const isFeaturedInWatchlist = computed(() => {
+  if (!featuredMovie.value?.id) return false
+  return watchlistStore.items.some(item => Number(item.tmdb_id) === Number(featuredMovie.value.id))
+})
 
 function pickRandomFeaturedMovie() {
   if (!store.trending.length) {
@@ -131,5 +141,10 @@ function loadMore() {
   if (!store.query.trim()) {
     store.loadMore()
   }
+}
+
+function addFeaturedToWatchlist() {
+  if (!featuredMovie.value) return
+  watchlistStore.addMovie(featuredMovie.value)
 }
 </script>
