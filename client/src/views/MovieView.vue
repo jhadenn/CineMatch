@@ -64,6 +64,14 @@
             </svg>
             {{ movie.vote_average?.toFixed(1) }}
           </span>
+          <button
+            type="button"
+            class="px-3 py-1 rounded-full border border-violet-400/40 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isInWatchlist"
+            @click="addCurrentMovieToWatchlist"
+          >
+            {{ isInWatchlist ? 'In Watchlist' : '+ Add to Watchlist' }}
+          </button>
         </div>
       </div>
     </div>
@@ -76,7 +84,7 @@
           v-for="genre in movie.genres"
           :key="genre.id"
           :to="{ path: '/search', query: { genre: genre.id } }"
-          class="px-3 py-1 text-sm font-medium rounded-full bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/40 transition-colors"
+          class="px-3 py-1 text-sm font-medium rounded-lg bg-white/[0.04] text-violet-200 border border-violet-400/30 hover:bg-violet-500/20 hover:border-violet-300/50 transition-colors"
         >
           {{ genre.name }}
         </RouterLink>
@@ -115,13 +123,16 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getMovieDetails } from '../services/tmdb.js'
+import { useWatchlistStore } from '../stores/watchlist.js'
 import TrailerEmbed from '../components/movie/TrailerEmbed.vue'
 import CastCarousel from '../components/movie/CastCarousel.vue'
 import MovieCard from '../components/movie/MovieCard.vue'
 
 const route = useRoute()
+const router = useRouter()
+const watchlistStore = useWatchlistStore()
 const movie = ref(null)
 const loading = ref(true)
 const error = ref(false)
@@ -141,6 +152,10 @@ const releaseYear = computed(() =>
 const similarMovies = computed(() =>
   (movie.value?.similar?.results || []).slice(0, 12)
 )
+const isInWatchlist = computed(() => {
+  if (!movie.value?.id) return false
+  return watchlistStore.items.some(item => Number(item.tmdb_id) === Number(movie.value.id))
+})
 
 function formatRuntime(minutes) {
   const h = Math.floor(minutes / 60)
@@ -155,10 +170,19 @@ async function fetchMovie(id) {
   movie.value = null
   try {
     movie.value = await getMovieDetails(id)
+    await watchlistStore.initialize()
   } catch {
     error.value = true
   } finally {
     loading.value = false
+  }
+}
+
+async function addCurrentMovieToWatchlist() {
+  if (!movie.value) return
+  const result = await watchlistStore.addMovie(movie.value)
+  if (result?.reason === 'unauthorized') {
+    router.push('/login')
   }
 }
 

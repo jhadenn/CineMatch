@@ -51,6 +51,7 @@ export const useMoviesStore = defineStore('movies', {
       minRating: 0,
     },
     currentPage: 1,
+    totalPages: 1,
     totalResults: 0,
     hasMore: true,
     loading: false,
@@ -77,32 +78,34 @@ export const useMoviesStore = defineStore('movies', {
       this.genres = data.genres || []
     },
 
-    async searchMovies(query) {
+    async searchMovies(query, page = 1) {
       // A fresh search always restarts pagination from page 1.
       this.query = query
-      this.currentPage = 1
+      this.currentPage = page
       this.loading = true
       try {
-        const data = await searchMovies(query, 1)
+        const data = await searchMovies(query, page)
         this._searchResults = data.results || []
         this.totalResults = data.total_results || 0
+        this.totalPages = data.total_pages || 1
         this.hasMore = data.page < data.total_pages
       } finally {
         this.loading = false
       }
     },
 
-    async loadTrending() {
+    async loadTrending(page = 1) {
       // Browse mode uses `discover` only when filters are active; otherwise it
       // shows the TMDB weekly trending feed.
-      this.currentPage = 1
+      this.currentPage = page
       this.loading = true
       try {
         const data = hasActiveFilters(this.filters)
-          ? await discoverMovies(this.filters, 1)
-          : await getTrending(1)
+          ? await discoverMovies(this.filters, page)
+          : await getTrending(page)
         this._trending = data.results || []
         this.totalResults = data.total_results || 0
+        this.totalPages = data.total_pages || 1
         this.hasMore = data.page < data.total_pages
       } finally {
         this.loading = false
@@ -131,9 +134,21 @@ export const useMoviesStore = defineStore('movies', {
         } else {
           this._trending = mergeUniqueMovies(this._trending, newMovies)
         }
+        this.totalPages = data.total_pages || this.totalPages
         this.hasMore = data.page < data.total_pages
       } finally {
         this.loading = false
+      }
+    },
+
+    async goToPage(page) {
+      if (this.loading) return
+      if (page < 1 || page > this.totalPages) return
+
+      if (this.query.trim()) {
+        await this.searchMovies(this.query, page)
+      } else {
+        await this.loadTrending(page)
       }
     },
 
@@ -154,6 +169,7 @@ export const useMoviesStore = defineStore('movies', {
       this.query = ''
       this._searchResults = []
       this.currentPage = 1
+      this.totalPages = 1
       this.totalResults = 0
       this.hasMore = true
       this.filters = { genre: null, yearFrom: null, yearTo: null, minRating: 0 }

@@ -16,4 +16,27 @@ db.pragma('foreign_keys = ON');
 const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
 db.exec(schema);
 
+function hasColumn(tableName, columnName) {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all();
+  return columns.some((column) => column.name === columnName);
+}
+
+function runMigrations() {
+  const migrations = [];
+
+  if (!hasColumn('watchlist', 'release_year')) {
+    migrations.push('ALTER TABLE watchlist ADD COLUMN release_year INTEGER');
+  }
+
+  if (!hasColumn('watchlist', 'genres')) {
+    migrations.push("ALTER TABLE watchlist ADD COLUMN genres TEXT NOT NULL DEFAULT '[]'");
+  }
+
+  for (const migration of migrations) {
+    db.exec(migration);
+  }
+}
+
+runMigrations();
+
 module.exports = db;

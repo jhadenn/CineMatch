@@ -16,7 +16,20 @@ async function request(method, path, body) {
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
-  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  if (!res.ok) {
+    let message = `API error: ${res.status}`
+    try {
+      const payload = await res.json()
+      if (payload?.error) message = payload.error
+    } catch {
+      // Response may not be JSON; keep status-based fallback.
+    }
+    const error = new Error(message)
+    error.status = res.status
+    throw error
+  }
+  // Some endpoints (e.g. DELETE) return 204 with no JSON body.
+  if (res.status === 204) return null
   return res.json()
 }
 
