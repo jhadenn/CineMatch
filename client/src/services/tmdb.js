@@ -3,6 +3,7 @@
 
 const BASE = '/api/tmdb'
 const IMAGE_BASE = 'https://image.tmdb.org/t/p/w500'
+const BACKDROP_BASE = 'https://image.tmdb.org/t/p/original'
 
 /**
  * Low-level TMDB fetch wrapper used by the more specific service helpers below.
@@ -46,4 +47,8 @@ export function posterUrl(path) {
   return path ? `${IMAGE_BASE}${path}` : null
 }
 
-export default { get, searchMovies, getTrending, discoverMovies, getMovieDetails, getGenres, posterUrl }
+export function backdropUrl(path) {
+  return path ? `${BACKDROP_BASE}${path}` : null
+}
+
+export default { get, searchMovies, getTrending, discoverMovies, getMovieDetails, getGenres, posterUrl, backdropUrl }
