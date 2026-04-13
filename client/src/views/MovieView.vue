@@ -84,7 +84,7 @@
           v-for="genre in movie.genres"
           :key="genre.id"
           :to="{ path: '/search', query: { genre: genre.id } }"
-          class="px-3 py-1 text-sm font-medium rounded-full bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/40 transition-colors"
+          class="px-3 py-1 text-sm font-medium rounded-lg bg-white/[0.04] text-violet-200 border border-violet-400/30 hover:bg-violet-500/20 hover:border-violet-300/50 transition-colors"
         >
           {{ genre.name }}
         </RouterLink>

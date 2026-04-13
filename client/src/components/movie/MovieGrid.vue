@@ -40,14 +40,14 @@
 
     <!-- Bottom loading spinner for infinite scroll -->
     <div
-      v-if="loading && movies.length > 0"
+      v-if="enableInfiniteScroll && loading && movies.length > 0"
       class="flex justify-center py-8"
     >
       <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
     </div>
 
     <!-- Scroll sentinel for IntersectionObserver -->
-    <div ref="sentinel" class="h-1" />
+    <div v-if="enableInfiniteScroll" ref="sentinel" class="h-1" />
   </div>
 </template>
 
@@ -58,6 +58,7 @@ import MovieCard from './MovieCard.vue'
 const props = defineProps({
   movies: { type: Array, required: true },
   loading: { type: Boolean, default: false },
+  enableInfiniteScroll: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['load-more'])
@@ -65,6 +66,7 @@ const sentinel = ref(null)
 let observer = null
 
 onMounted(() => {
+  if (!props.enableInfiniteScroll) return
   observer = new IntersectionObserver(
     (entries) => {
       if (entries[0].isIntersecting) {
@@ -81,6 +83,7 @@ onMounted(() => {
 // leave few results), re-trigger the observer so it fires again if the
 // sentinel is still in view.
 watch(() => props.movies.length, () => {
+  if (!props.enableInfiniteScroll) return
   if (sentinel.value && observer) {
     observer.unobserve(sentinel.value)
     observer.observe(sentinel.value)

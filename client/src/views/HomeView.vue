@@ -1,5 +1,5 @@
 <template>
-  <div class="pb-8">
+  <div class="pb-14 min-h-[calc(100vh-72px)]">
     <section
       class="relative overflow-hidden min-h-[70vh] border-b border-gray-800"
       :style="heroStyle"
@@ -76,8 +76,42 @@
       <MovieGrid
         :movies="store.trending"
         :loading="store.loading"
-        @load-more="loadMore"
+        :enable-infinite-scroll="false"
       />
+
+      <div v-if="showPagination" class="mt-8 flex flex-wrap items-center justify-center gap-2">
+        <button
+          type="button"
+          class="px-3 py-1.5 rounded-lg border border-white/10 text-sm text-gray-300 hover:text-white hover:border-violet-400/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="store.currentPage === 1 || store.loading"
+          @click="goToPage(store.currentPage - 1)"
+        >
+          Prev
+        </button>
+
+        <button
+          v-for="page in pageNumbers"
+          :key="page"
+          type="button"
+          class="min-w-9 h-9 rounded-lg border text-sm font-medium transition-colors"
+          :class="page === store.currentPage
+            ? 'bg-violet-500/25 text-violet-100 border-violet-400/45'
+            : 'border-white/10 text-gray-300 hover:text-white hover:border-violet-400/40'"
+          :disabled="store.loading"
+          @click="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          type="button"
+          class="px-3 py-1.5 rounded-lg border border-white/10 text-sm text-gray-300 hover:text-white hover:border-violet-400/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          :disabled="store.currentPage === store.totalPages || store.loading"
+          @click="goToPage(store.currentPage + 1)"
+        >
+          Next
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -124,6 +158,14 @@ const matchLabel = computed(() => {
   const score = featuredMovie.value?.vote_average ? Math.min(99, Math.round(featuredMovie.value.vote_average * 10)) : 95
   return `${score}% Match For You`
 })
+const showPagination = computed(() => store.trending.length > 0 && store.totalPages > 1)
+const pageNumbers = computed(() => {
+  const total = store.totalPages
+  const current = store.currentPage
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages = new Set([1, total, current - 1, current, current + 1])
+  return [...pages].filter(page => page >= 1 && page <= total).sort((a, b) => a - b)
+})
 const isFeaturedInWatchlist = computed(() => {
   if (!featuredMovie.value?.id) return false
   return watchlistStore.items.some(item => Number(item.tmdb_id) === Number(featuredMovie.value.id))
@@ -138,11 +180,9 @@ function pickRandomFeaturedMovie() {
   featuredMovieId.value = store.trending[randomIndex].id
 }
 
-function loadMore() {
-  // Home only paginates browse-mode results, never active search results.
-  if (!store.query.trim()) {
-    store.loadMore()
-  }
+function goToPage(page) {
+  store.goToPage(page)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 async function addFeaturedToWatchlist() {
