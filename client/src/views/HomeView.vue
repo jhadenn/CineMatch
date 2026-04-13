@@ -42,14 +42,16 @@
           </p>
 
           <div class="flex flex-wrap gap-3">
-            <RouterLink
+            <button
               v-if="featuredMovie"
-              :to="`/movie/${featuredMovie.id}`"
-              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold transition-colors bg-[#7c3aed] hover:bg-[#6d28d9]"
+              type="button"
+              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold transition-colors bg-[#7c3aed] hover:bg-[#6d28d9] disabled:opacity-60 disabled:cursor-not-allowed"
+              :disabled="trailerLoading"
+              @click="openTrailerModal"
             >
               <span class="text-xs">▶</span>
-              Watch Trailer
-            </RouterLink>
+              {{ trailerLoading ? 'Loading Trailer...' : 'Watch Trailer' }}
+            </button>
             <button
               v-if="featuredMovie"
               type="button"
@@ -120,6 +122,27 @@
         </button>
       </div>
     </div>
+
+    <div
+      v-if="isTrailerModalOpen"
+      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm px-4 flex items-center justify-center"
+      @click.self="closeTrailerModal"
+    >
+      <div class="w-full max-w-4xl rounded-2xl border border-violet-400/25 bg-gray-950/95 p-4 sm:p-5 shadow-2xl shadow-black/40">
+        <div class="mb-3 flex items-center justify-between">
+          <h3 class="text-lg sm:text-xl font-semibold text-white truncate">{{ featuredMovie?.title }} Trailer</h3>
+          <button
+            type="button"
+            class="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-violet-400/40 transition-colors"
+            @click="closeTrailerModal"
+            aria-label="Close trailer"
+          >
+            ×
+          </button>
+        </div>
+        <TrailerEmbed :videos="trailerVideos" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -128,13 +151,17 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMoviesStore } from '../stores/movies.js'
 import { useWatchlistStore } from '../stores/watchlist.js'
-import { backdropUrl } from '../services/tmdb.js'
+import { backdropUrl, getMovieDetails } from '../services/tmdb.js'
 import MovieGrid from '../components/movie/MovieGrid.vue'
+import TrailerEmbed from '../components/movie/TrailerEmbed.vue'
 
 const store = useMoviesStore()
 const watchlistStore = useWatchlistStore()
 const router = useRouter()
 const featuredMovieId = ref(null)
+const isTrailerModalOpen = ref(false)
+const trailerLoading = ref(false)
+const trailerVideos = ref([])
 
 onMounted(async () => {
   // Preserve previously loaded browse results when the user navigates back home.
@@ -198,5 +225,22 @@ async function addFeaturedToWatchlist() {
   if (result?.reason === 'unauthorized') {
     router.push('/login')
   }
+}
+
+async function openTrailerModal() {
+  if (!featuredMovie.value) return
+  trailerLoading.value = true
+  try {
+    const details = await getMovieDetails(featuredMovie.value.id)
+    trailerVideos.value = details?.videos?.results || []
+    isTrailerModalOpen.value = true
+  } finally {
+    trailerLoading.value = false
+  }
+}
+
+function closeTrailerModal() {
+  isTrailerModalOpen.value = false
+  trailerVideos.value = []
 }
 </script>
