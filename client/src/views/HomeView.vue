@@ -84,6 +84,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useMoviesStore } from '../stores/movies.js'
 import { useWatchlistStore } from '../stores/watchlist.js'
 import { backdropUrl } from '../services/tmdb.js'
@@ -91,6 +92,7 @@ import MovieGrid from '../components/movie/MovieGrid.vue'
 
 const store = useMoviesStore()
 const watchlistStore = useWatchlistStore()
+const router = useRouter()
 const featuredMovieId = ref(null)
 
 onMounted(async () => {
@@ -143,8 +145,11 @@ function loadMore() {
   }
 }
 
-function addFeaturedToWatchlist() {
+async function addFeaturedToWatchlist() {
   if (!featuredMovie.value) return
-  watchlistStore.addMovie(featuredMovie.value)
+  const result = await watchlistStore.addMovie(featuredMovie.value)
+  if (result?.reason === 'unauthorized') {
+    router.push('/login')
+  }
 }
 </script>

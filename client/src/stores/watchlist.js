@@ -1,17 +1,13 @@
 import { defineStore } from 'pinia'
 import api from '../services/api.js'
 
-const STORAGE_KEY = 'cinematch_watchlist'
-
 function normalizeItem(raw, fallbackPosition = 0) {
   const tmdbId = Number(raw.tmdb_id ?? raw.id)
   return {
-    id: raw.id ?? `${tmdbId}-${Date.now()}`,
+    id: raw.id,
     tmdb_id: tmdbId,
     title: raw.title ?? 'Untitled',
     poster_path: raw.poster_path ?? null,
-    release_date: raw.release_date ?? null,
-    vote_average: raw.vote_average ?? null,
     added_at: raw.added_at ?? new Date().toISOString(),
     position: Number.isFinite(raw.position) ? raw.position : fallbackPosition,
   }
@@ -22,6 +18,8 @@ export const useWatchlistStore = defineStore('watchlist', {
     items: [],
     loading: false,
     initialized: false,
+    error: '',
+    lastToken: null,
   }),
 
   getters: {
@@ -34,49 +32,56 @@ export const useWatchlistStore = defineStore('watchlist', {
   },
 
   actions: {
-    loadFromStorage() {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) {
-        this.items = []
+    clearState() {
+      this.items = []
+      this.error = ''
+      this.initialized = false
+      this.lastToken = null
+    },
+
+    async initialize(force = false) {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        this.clearState()
         return
       }
 
-      try {
-        const parsed = JSON.parse(raw)
-        this.items = (Array.isArray(parsed) ? parsed : []).map((item, index) =>
-          normalizeItem(item, index)
-        )
-      } catch {
-        this.items = []
-      }
-    },
+      const tokenChanged = this.lastToken !== token
+      if (this.initialized && !force && !tokenChanged) return
 
-    saveToStorage() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.items))
-    },
-
-    async initialize() {
-      if (this.initialized) return
       this.initialized = true
+      this.lastToken = token
       await this.fetchWatchlist()
     },
 
     async fetchWatchlist() {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        this.clearState()
+        return
+      }
+
       this.loading = true
+      this.error = ''
       try {
         const data = await api.get('/watchlist')
         const items = Array.isArray(data) ? data : (data.items || [])
         this.items = items.map((item, index) => normalizeItem(item, index))
-        this.saveToStorage()
-      } catch {
-        // Fall back to local persistence while backend auth/watchlist is evolving.
-        this.loadFromStorage()
+      } catch (error) {
+        if (error?.status === 401) {
+          this.clearState()
+          return
+        }
+        this.error = error?.message || 'Failed to load watchlist.'
       } finally {
         this.loading = false
       }
     },
 
     async addMovie(movie) {
+      const token = localStorage.getItem('token')
+      if (!token) return { added: false, reason: 'unauthorized' }
+
       const tmdbId = Number(movie?.id ?? movie?.tmdb_id)
       if (!tmdbId) return { added: false, reason: 'invalid' }
       const exists = this.items.some(item => Number(item.tmdb_id) === tmdbId)
@@ -86,46 +91,42 @@ export const useWatchlistStore = defineStore('watchlist', {
         tmdb_id: tmdbId,
         title: movie.title,
         poster_path: movie.poster_path || null,
-        release_date: movie.release_date || null,
-        vote_average: movie.vote_average || null,
       }
-
-      const localItem = normalizeItem(
-        { ...payload, id: `${tmdbId}-${Date.now()}` },
-        this.items.length
-      )
-      this.items.push(localItem)
-      this.saveToStorage()
 
       try {
         const created = await api.post('/watchlist', payload)
         if (created?.id) {
-          const idx = this.items.findIndex(item => item.id === localItem.id)
-          if (idx >= 0) this.items[idx].id = created.id
-          this.saveToStorage()
+          this.items.push(normalizeItem(created, this.items.length))
         }
-      } catch {
-        // Keep local item so UI remains functional without backend auth wiring.
+      } catch (error) {
+        if (error?.status === 409) return { added: false, reason: 'exists' }
+        if (error?.status === 401) return { added: false, reason: 'unauthorized' }
+        return { added: false, reason: 'failed' }
       }
 
       return { added: true }
     },
 
     async removeItem(itemId) {
+      const token = localStorage.getItem('token')
+      if (!token) return
       const idx = this.items.findIndex(item => String(item.id) === String(itemId))
       if (idx < 0) return
-      const [removed] = this.items.splice(idx, 1)
-      this.reindexPositions()
-      this.saveToStorage()
 
       try {
-        await api.delete(`/watchlist/${removed.id}`)
-      } catch {
-        // Ignore backend failures and preserve local state.
+        await api.delete(`/watchlist/${itemId}`)
+        this.items.splice(idx, 1)
+        this.reindexPositions()
+      } catch (error) {
+        if (error?.status === 401) {
+          this.clearState()
+        }
       }
     },
 
     async moveItem(fromIndex, toIndex) {
+      const token = localStorage.getItem('token')
+      if (!token) return
       if (fromIndex === toIndex) return
       if (fromIndex < 0 || toIndex < 0) return
       if (fromIndex >= this.items.length || toIndex >= this.items.length) return
@@ -134,14 +135,13 @@ export const useWatchlistStore = defineStore('watchlist', {
       const [moved] = next.splice(fromIndex, 1)
       next.splice(toIndex, 0, moved)
       this.items = next.map((item, index) => ({ ...item, position: index }))
-      this.saveToStorage()
 
       try {
         await api.patch('/watchlist/order', {
           items: this.items.map(item => ({ id: item.id, position: item.position })),
         })
       } catch {
-        // Keep local ordering when backend endpoint is unavailable.
+        await this.fetchWatchlist()
       }
     },
 

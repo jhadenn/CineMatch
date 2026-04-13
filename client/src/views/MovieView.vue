@@ -123,7 +123,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getMovieDetails } from '../services/tmdb.js'
 import { useWatchlistStore } from '../stores/watchlist.js'
 import TrailerEmbed from '../components/movie/TrailerEmbed.vue'
@@ -131,6 +131,7 @@ import CastCarousel from '../components/movie/CastCarousel.vue'
 import MovieCard from '../components/movie/MovieCard.vue'
 
 const route = useRoute()
+const router = useRouter()
 const watchlistStore = useWatchlistStore()
 const movie = ref(null)
 const loading = ref(true)
@@ -177,9 +178,12 @@ async function fetchMovie(id) {
   }
 }
 
-function addCurrentMovieToWatchlist() {
+async function addCurrentMovieToWatchlist() {
   if (!movie.value) return
-  watchlistStore.addMovie(movie.value)
+  const result = await watchlistStore.addMovie(movie.value)
+  if (result?.reason === 'unauthorized') {
+    router.push('/login')
+  }
 }
 
 // Re-run the fetch when the route changes so clicking "More Like This" cards
