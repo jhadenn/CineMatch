@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS watchlist (
   tmdb_id     INTEGER NOT NULL,
   title       TEXT NOT NULL,
   poster_path TEXT,
+  release_year INTEGER,
+  genres      TEXT NOT NULL DEFAULT '[]',
   position    INTEGER NOT NULL DEFAULT 0,
   added_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, tmdb_id)
