@@ -249,24 +249,21 @@ App.vue
 │
 └── Footer.vue
 ```
+
+---
  
----
-
-
----
-
 ## Express API Routes
-
+ 
 ### Auth — `/api/auth`
-
+ 
 | Method | Route       | Description              | Auth required |
 |--------|-------------|--------------------------|---------------|
 | POST   | `/register` | Create new account       | No            |
 | POST   | `/login`    | Login, returns JWT       | No            |
 | GET    | `/me`       | Get current user profile | Yes           |
-
+ 
 ### Watchlist — `/api/watchlist`
-
+ 
 | Method | Route    | Description                        | Auth required |
 |--------|----------|------------------------------------|---------------|
 | GET    | `/`      | Get user's watchlist               | Yes           |
@@ -274,25 +271,25 @@ App.vue
 | DELETE | `/:id`   | Remove movie from watchlist        | Yes           |
 | PATCH  | `/order` | Update watchlist item order        | Yes           |
 | GET    | `/share/:token` | Get shared watchlist (public) | No        |
-
+ 
 ### Watch History — `/api/history`
-
+ 
 | Method | Route   | Description                      | Auth required |
 |--------|---------|----------------------------------|---------------|
 | GET    | `/`     | Get user's full watch history    | Yes           |
 | POST   | `/`     | Mark a movie as watched          | Yes           |
 | DELETE | `/:id`  | Remove from history              | Yes           |
-
+ 
 ### Recommendations — `/api/recommendations`
-
+ 
 | Method | Route | Description                                      | Auth required |
 |--------|-------|--------------------------------------------------|---------------|
 | GET    | `/`   | Get personalized recommendations for current user | Yes           |
-
+ 
 ---
 
 ## Database Schema
-
+ 
 ```sql
 -- Users
 CREATE TABLE users (
@@ -302,7 +299,7 @@ CREATE TABLE users (
   username    TEXT NOT NULL,
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-
+ 
 -- Watchlist
 CREATE TABLE watchlist (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -314,7 +311,7 @@ CREATE TABLE watchlist (
   added_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, tmdb_id)
 );
-
+ 
 -- Watch history
 CREATE TABLE watch_history (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -328,7 +325,7 @@ CREATE TABLE watch_history (
   watched_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, tmdb_id)
 );
-
+ 
 -- Shared watchlist tokens
 CREATE TABLE watchlist_shares (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -337,74 +334,114 @@ CREATE TABLE watchlist_shares (
   created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 ```
-
+ 
 ---
-
+---
+ 
 ## Recommendation Engine
-
-**Package:** `ml-matrix` (npm)  
-**Approach:** Content-based filtering using cosine similarity
-
+ 
+**API:** OpenAI `text-embedding-3-small`  
+**Approach:** Semantic vector embeddings + cosine similarity
+ 
 ### How it works
-
-1. **Build a feature vector** for each movie in the user's watch history using:
-   - Genre weights (one-hot encoded across ~19 TMDB genres)
-   - Decade (normalized 0–1)
-   - Director match bonus
-   
-2. **Build a user profile vector** by averaging all watched movie vectors
-
-3. **Score candidate movies** (trending + popular from TMDB not yet watched) by computing cosine similarity against the user profile vector
-
-4. **Return top N results** sorted by similarity score
-
+ 
+1. **Embed each watched movie** — when a user marks a movie as watched, the server sends a text document (`"Title. Overview. Genres: Action, Drama. Director: Christopher Nolan"`) to the OpenAI Embeddings API and receives a 1536-dimension vector back. This vector is stored in the DB so the API is only ever called once per movie.
+ 
+2. **Build a user profile vector** — average all embedding vectors from the user's watch history into a single profile vector representing their taste.
+ 
+3. **Score candidate movies** — fetch trending + popular movies from TMDB that the user hasn't watched. Embed any that aren't already cached. Compute cosine similarity between each candidate's vector and the user's profile vector.
+ 
+4. **Return top N results** sorted by similarity score.
+ 
+### Why this approach is resume-worthy
+ 
+- Uses the same embedding + cosine similarity pattern behind production recommendation systems at companies like Spotify and Netflix
+- `text-embedding-3-small` captures semantic meaning — it understands that *Blade Runner* and *Ex Machina* are similar even if they share no cast or genre tags
+- Can be honestly described as: *"Built a semantic recommendation engine using OpenAI vector embeddings and cosine similarity"*
+ 
 ### Implementation sketch (`server/services/recommender.js`)
-
+ 
 ```js
-const { Matrix } = require('ml-matrix');
-
-const GENRES = [
-  'Action','Adventure','Animation','Comedy','Crime',
-  'Documentary','Drama','Family','Fantasy','History',
-  'Horror','Music','Mystery','Romance','Science Fiction',
-  'Thriller','War','Western','TV Movie'
-];
-
-const DECADE_MIN = 1920;
-const DECADE_MAX = 2030;
-
-function buildVector(movie) {
-  const genreVec = GENRES.map(g => movie.genres.includes(g) ? 1 : 0);
-  const decade = (movie.release_year - DECADE_MIN) / (DECADE_MAX - DECADE_MIN);
-  return [...genreVec, decade];
+const OpenAI = require('openai');
+const db = require('../db/database');
+ 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+ 
+// Generate and cache an embedding for a movie
+async function getEmbedding(movie) {
+  const existing = db.prepare(
+    'SELECT embedding FROM movie_embeddings WHERE tmdb_id = ?'
+  ).get(movie.tmdb_id);
+ 
+  if (existing) return JSON.parse(existing.embedding);
+ 
+  const input = `${movie.title}. ${movie.overview}. Genres: ${movie.genres.join(', ')}. Director: ${movie.director ?? 'Unknown'}.`;
+  const response = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input,
+  });
+ 
+  const vector = response.data[0].embedding;
+  db.prepare(
+    'INSERT OR IGNORE INTO movie_embeddings (tmdb_id, embedding) VALUES (?, ?)'
+  ).run(movie.tmdb_id, JSON.stringify(vector));
+ 
+  return vector;
 }
-
+ 
+// Cosine similarity between two vectors
 function cosineSimilarity(a, b) {
   const dot = a.reduce((sum, val, i) => sum + val * b[i], 0);
   const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
   const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
   return dot / (magA * magB);
 }
-
-function getRecommendations(watchedMovies, candidates) {
-  if (watchedMovies.length === 0) return candidates.slice(0, 10);
-
-  const watchedVectors = watchedMovies.map(buildVector);
-  const profileMatrix = new Matrix(watchedVectors);
-  const profile = profileMatrix.mean('column'); // average vector
-
-  return candidates
-    .map(movie => ({
-      ...movie,
-      score: cosineSimilarity(profile, buildVector(movie))
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20);
+ 
+// Average a list of vectors into one profile vector
+function averageVectors(vectors) {
+  const len = vectors[0].length;
+  const sum = new Array(len).fill(0);
+  for (const vec of vectors) vec.forEach((v, i) => { sum[i] += v; });
+  return sum.map(v => v / vectors.length);
 }
-
+ 
+// Main export — called by GET /api/recommendations
+async function getRecommendations(watchedMovies, candidates) {
+  if (watchedMovies.length === 0) return candidates.slice(0, 10);
+ 
+  const watchedVectors = await Promise.all(watchedMovies.map(getEmbedding));
+  const profile = averageVectors(watchedVectors);
+ 
+  const scored = await Promise.all(
+    candidates.map(async movie => ({
+      ...movie,
+      score: cosineSimilarity(profile, await getEmbedding(movie)),
+    }))
+  );
+ 
+  return scored.sort((a, b) => b.score - a.score).slice(0, 20);
+}
+ 
 module.exports = { getRecommendations };
 ```
-
+ 
+### Additional DB table required
+ 
+```sql
+-- Cached OpenAI embedding vectors (1536 dimensions, stored as JSON)
+CREATE TABLE movie_embeddings (
+  tmdb_id   INTEGER PRIMARY KEY,
+  embedding TEXT NOT NULL            -- JSON array of 1536 floats
+);
+```
+ 
+### Environment variable required
+ 
+```
+OPENAI_API_KEY=sk-...
+```
+ 
+---
 ---
 
 ## Rubric Mapping
