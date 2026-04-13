@@ -28,6 +28,8 @@ async function request(method, path, body) {
     error.status = res.status
     throw error
   }
+  // Some endpoints (e.g. DELETE) return 204 with no JSON body.
+  if (res.status === 204) return null
   return res.json()
 }
 

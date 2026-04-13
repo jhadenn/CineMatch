@@ -55,13 +55,22 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth.js'
 import { useWatchlistStore } from '../stores/watchlist.js'
 import WatchlistPanel from '../components/watchlist/WatchlistPanel.vue'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const store = useWatchlistStore()
 const items = computed(() => store.sortedItems)
 
 onMounted(() => {
+  authStore.initialize()
+  if (!authStore.isAuthenticated) {
+    router.push('/login')
+    return
+  }
   store.initialize()
 })
 
