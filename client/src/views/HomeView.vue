@@ -72,12 +72,19 @@
     </section>
 
     <div class="max-w-7xl mx-auto px-4 pt-10">
-      <h2 class="text-2xl font-bold text-white mb-6">Trending This Week</h2>
+      <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300/90">Browse</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-white">Trending This Week</h2>
+        <p class="mt-2 text-sm text-gray-400">Fresh picks everyone is watching right now.</p>
+      </div>
+
+      <div class="rounded-2xl border border-violet-500/15 bg-white/[0.02] p-3 sm:p-4">
       <MovieGrid
         :movies="store.trending"
         :loading="store.loading"
         :enable-infinite-scroll="false"
       />
+      </div>
 
       <div v-if="showPagination" class="mt-8 flex flex-wrap items-center justify-center gap-2">
         <button

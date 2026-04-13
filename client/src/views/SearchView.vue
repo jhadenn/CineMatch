@@ -1,14 +1,20 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 py-8 pb-14 min-h-[calc(100vh-72px)]">
+    <div class="mb-7">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300/90">Discover</p>
+      <h1 class="mt-2 text-3xl sm:text-4xl font-bold text-white tracking-tight">Find your next watch</h1>
+      <p class="mt-2 text-sm text-gray-400">Search, filter, and jump through pages with a cleaner browsing flow.</p>
+    </div>
+
     <!-- Search + Filters -->
-    <div class="flex flex-col lg:flex-row gap-4 mb-8">
+    <div class="flex flex-col lg:flex-row gap-4 mb-6">
       <div class="flex-1">
         <SearchBar v-model="searchQuery" placeholder="Search for movies..." @search="onSearch" />
       </div>
     </div>
 
     <!-- Filter panel -->
-    <div class="mb-6">
+    <div class="mb-7">
       <FilterPanel
         :filters="store.filters"
         :genres="store.genres"
@@ -18,10 +24,10 @@
     </div>
 
     <!-- Result count -->
-    <div v-if="searchQuery.trim()" class="mb-4 text-sm text-gray-400">
+    <div v-if="searchQuery.trim()" class="mb-5 text-sm text-gray-400">
       {{ resultText }}
     </div>
-    <div v-else class="mb-4">
+    <div v-else class="mb-5">
       <h2 class="text-2xl font-bold text-white">Trending This Week</h2>
     </div>
 
@@ -129,16 +135,28 @@ function applyRouteState() {
   const genreChanged = store.filters.genre !== genre
 
   searchQuery.value = q
-  if (genreChanged) {
-    store.setFilters({ genre })
+  // If URL has no query text, force browse mode first so genre links always
+  // fetch discover/trending results instead of filtering stale search results.
+  if (!q.trim() && store.query.trim()) {
+    store.clearSearch()
   }
 
   if (q.trim()) {
+    if (genreChanged) {
+      store.setFilters({ genre })
+      return
+    }
     if (store.query !== q || genreChanged || store._searchResults.length === 0) {
       store.searchMovies(q)
     }
-  } else if (!genreChanged && (store._trending.length === 0 || store.filters.genre)) {
-    store.loadTrending()
+  } else {
+    if (genreChanged) {
+      store.setFilters({ genre })
+      return
+    }
+    if (store._trending.length === 0 || store.filters.genre) {
+      store.loadTrending()
+    }
   }
 }
 

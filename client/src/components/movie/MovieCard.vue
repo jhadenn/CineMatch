@@ -1,7 +1,7 @@
 <template>
   <RouterLink
     :to="`/movie/${movie.id}`"
-    class="group relative block rounded-lg overflow-hidden bg-gray-800 shadow-md hover:shadow-xl hover:ring-1 hover:ring-indigo-500/50 transition-all duration-300"
+    class="group relative block rounded-xl overflow-hidden bg-gradient-to-b from-gray-900 to-gray-800/95 border border-white/10 shadow-md hover:shadow-xl hover:-translate-y-0.5 hover:border-violet-400/35 transition-all duration-300"
   >
     <!-- Poster -->
     <div class="aspect-[2/3] overflow-hidden">
@@ -31,9 +31,9 @@
     </div>
 
     <!-- Info bar -->
-    <div class="p-3">
+    <div class="p-3.5">
       <h3 class="text-sm font-semibold text-white truncate">{{ movie.title }}</h3>
-      <div class="flex items-center justify-between mt-1 text-xs text-gray-400">
+      <div class="flex items-center justify-between mt-1.5 text-xs text-gray-400">
         <span>{{ releaseYear }}</span>
         <span class="flex items-center gap-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
