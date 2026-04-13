@@ -8,14 +8,6 @@
       <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-gray-950/40" />
 
       <div class="relative max-w-7xl mx-auto px-4 pt-6 pb-12 min-h-[70vh] flex flex-col">
-        <div class="max-w-md">
-          <SearchBar
-            v-model="searchQuery"
-            placeholder="Search movies..."
-            @search="onSearch"
-          />
-        </div>
-
         <div class="mt-auto max-w-2xl space-y-5">
           <span
             class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold border"
@@ -89,25 +81,25 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useMoviesStore } from '../stores/movies.js'
 import { backdropUrl } from '../services/tmdb.js'
-import SearchBar from '../components/search/SearchBar.vue'
 import MovieGrid from '../components/movie/MovieGrid.vue'
 
 const store = useMoviesStore()
-const router = useRouter()
-const searchQuery = ref('')
+const featuredMovieId = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
   // Preserve previously loaded browse results when the user navigates back home.
   if (store._trending.length === 0) {
-    store.loadTrending()
+    await store.loadTrending()
   }
+  pickRandomFeaturedMovie()
   store.fetchGenres()
 })
 
-const featuredMovie = computed(() => store.trending[0] || null)
+const featuredMovie = computed(() =>
+  store.trending.find(movie => movie.id === featuredMovieId.value) || store.trending[0] || null
+)
 const heroStyle = computed(() => {
   const image = backdropUrl(featuredMovie.value?.backdrop_path)
   const fallback = 'linear-gradient(135deg, #09090b 0%, #18181b 55%, #111827 100%)'
@@ -125,10 +117,13 @@ const matchLabel = computed(() => {
   return `${score}% Match For You`
 })
 
-function onSearch(query) {
-  if (query.trim()) {
-    router.push({ path: '/search', query: { q: query } })
+function pickRandomFeaturedMovie() {
+  if (!store.trending.length) {
+    featuredMovieId.value = null
+    return
   }
+  const randomIndex = Math.floor(Math.random() * store.trending.length)
+  featuredMovieId.value = store.trending[randomIndex].id
 }
 
 function loadMore() {
