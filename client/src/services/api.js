@@ -33,9 +33,19 @@ async function request(method, path, body) {
   return res.json()
 }
 
+export function getRecommendations() {
+  return request('GET', '/recommendations')
+}
+
+export function getMovieMatch(tmdbId) {
+  return request('GET', `/recommendations/match/${tmdbId}`)
+}
+
 export default {
   get:    (path)        => request('GET',    path),
   post:   (path, body)  => request('POST',   path, body),
   patch:  (path, body)  => request('PATCH',  path, body),
   delete: (path)        => request('DELETE', path),
+  getRecommendations,
+  getMovieMatch,
 }

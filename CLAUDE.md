@@ -446,9 +446,7 @@ OPENAI_API_KEY=sk-...
 
 ## UI Inspiration and Theme
 
-The UI follows a modern aesthetic, using a minimalist, component-driven design system inspired by shadcn/ui combined with elements similar to Netflix's UI design. The layout is structured around reusable, card-based components with consistent spacing, subtle borders, and soft shadows to create a clean and low-noise visual hierarchy. The interface emphasizes usability and clarity, resembling an operating system or workspace environment rather than a traditional marketing site. Overall, the design reflects current best practices in frontend development, prioritizing responsiveness, modularity, and a polished, developer-centric user experience.
-
-https://cut-os.vercel.app/  
+The UI follows a modern aesthetic, using a minimalist, component-driven design system inspired by shadcn/ui combined with elements similar to Netflix's UI design. The layout is structured around reusable, card-based components with consistent spacing, subtle borders, and soft shadows to create a clean and low-noise visual hierarchy. The interface emphasizes usability and clarity, resembling an operating system or workspace environment rather than a traditional marketing site. Overall, the design reflects current best practices in frontend development, prioritizing responsiveness, modularity, and a polished, developer-centric user experience. Link to UI inspiration: https://cut-os.vercel.app/ & https://v0.app/templates/skal-ventures-template-tnZGzubtsTc
 
 ## Rubric Mapping
 
@@ -467,8 +465,8 @@ https://cut-os.vercel.app/
 
 
 ## Submission Checklist
-- [ ] No hardcoded API keys (use `.env` with `.env.example` provided)
-- [ ] App runs with `npm install` + `npm run dev` from project root
+- [X] No hardcoded API keys (use `.env` with `.env.example` provided)
+- [X] App runs with `npm install` + `npm run dev` from project root
 - [ ] `group_members.html` — table with all member names and Banner IDs
 - [ ] `contributions.txt` — each member's specific contributions listed
 - [ ] `intro.mp4` — 3–5 min promo video demonstrating all features (and new technology)

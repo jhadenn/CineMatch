@@ -88,6 +88,16 @@
       />
       </div>
 
+      <!-- Personalized recommendations (logged-in users only) -->
+      <template v-if="authStore.isAuthenticated">
+        <div class="mt-12 mb-6">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300/90">For You</p>
+        </div>
+        <div class="rounded-2xl border border-violet-500/15 bg-white/[0.02] p-3 sm:p-4 mb-8">
+          <RecoFeed :limit="10" title="Recommended for You" />
+        </div>
+      </template>
+
       <div v-if="showPagination" class="mt-8 flex flex-wrap items-center justify-center gap-2">
         <button
           type="button"
@@ -151,12 +161,15 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMoviesStore } from '../stores/movies.js'
 import { useWatchlistStore } from '../stores/watchlist.js'
+import { useAuthStore } from '../stores/auth.js'
 import { backdropUrl, getMovieDetails } from '../services/tmdb.js'
 import MovieGrid from '../components/movie/MovieGrid.vue'
 import TrailerEmbed from '../components/movie/TrailerEmbed.vue'
+import RecoFeed from '../components/recommendations/RecoFeed.vue'
 
 const store = useMoviesStore()
 const watchlistStore = useWatchlistStore()
+const authStore = useAuthStore()
 const router = useRouter()
 const featuredMovieId = ref(null)
 const isTrailerModalOpen = ref(false)

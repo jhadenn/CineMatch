@@ -20,6 +20,7 @@
       <RouterLink :to="`/movie/${item.tmdb_id}`" class="text-white font-semibold hover:text-violet-300 transition-colors line-clamp-1">
         {{ item.title }}
       </RouterLink>
+      <p class="mt-1 text-sm text-gray-400">Watched {{ watchedLabel }}</p>
       <div class="mt-1 flex flex-wrap items-center text-sm text-gray-400">
         <span
           v-for="(segment, index) in metadataSegments"
@@ -32,43 +33,14 @@
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center justify-end gap-2">
-      <button
-        type="button"
-        class="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-sm font-medium text-emerald-100 hover:bg-emerald-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="isMarkingWatched"
-        @click="$emit('mark-watched')"
-      >
-        {{ isMarkingWatched ? 'Marking...' : 'Mark watched' }}
-      </button>
-      <button
-        type="button"
-        class="h-8 w-8 rounded-lg border border-white/10 bg-white/[0.03] text-gray-300 hover:text-white hover:border-violet-400/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        :disabled="isFirst || isMarkingWatched"
-        aria-label="Move up"
-        @click="$emit('move-up')"
-      >
-        ↑
-      </button>
-      <button
-        type="button"
-        class="h-8 w-8 rounded-lg border border-white/10 bg-white/[0.03] text-gray-300 hover:text-white hover:border-violet-400/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        :disabled="isLast || isMarkingWatched"
-        aria-label="Move down"
-        @click="$emit('move-down')"
-      >
-        ↓
-      </button>
-      <button
-        type="button"
-        class="h-8 w-8 rounded-lg border border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/20 transition-colors"
-        :disabled="isMarkingWatched"
-        aria-label="Remove from watchlist"
-        @click="$emit('remove')"
-      >
-        ×
-      </button>
-    </div>
+    <button
+      type="button"
+      class="rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-200 hover:bg-red-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      :disabled="isRemoving"
+      @click="$emit('remove')"
+    >
+      {{ isRemoving ? 'Removing...' : 'Remove' }}
+    </button>
   </article>
 </template>
 
@@ -78,23 +50,16 @@ import { posterUrl } from '../../services/tmdb.js'
 
 const props = defineProps({
   item: { type: Object, required: true },
-  isFirst: { type: Boolean, default: false },
-  isLast: { type: Boolean, default: false },
-  isMarkingWatched: { type: Boolean, default: false },
+  isRemoving: { type: Boolean, default: false },
 })
 
-defineEmits(['remove', 'move-up', 'move-down', 'mark-watched'])
+defineEmits(['remove'])
 
 const poster = computed(() => posterUrl(props.item.poster_path))
 
 const releaseYear = computed(() => {
   const explicitYear = Number.parseInt(props.item.release_year, 10)
-  if (Number.isFinite(explicitYear)) return String(explicitYear)
-
-  const fallbackYear = typeof props.item.release_date === 'string'
-    ? props.item.release_date.slice(0, 4)
-    : ''
-  return /^\d{4}$/.test(fallbackYear) ? fallbackYear : 'Unknown year'
+  return Number.isFinite(explicitYear) ? String(explicitYear) : 'Unknown year'
 })
 
 const genres = computed(() => {
@@ -104,6 +69,17 @@ const genres = computed(() => {
     .filter(genre => typeof genre === 'string' && genre.trim())
     .map(genre => genre.trim())
     .slice(0, 2)
+})
+
+const watchedLabel = computed(() => {
+  const parsed = Date.parse(props.item.watched_at || '')
+  if (!parsed) return 'recently'
+
+  return new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(parsed)
 })
 
 const metadataSegments = computed(() => [releaseYear.value, ...genres.value].filter(Boolean))

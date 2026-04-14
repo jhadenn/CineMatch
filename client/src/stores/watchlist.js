@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import api from '../services/api.js'
 import { useMoviesStore } from './movies.js'
+import { useRecommendationsStore } from './recommendations.js'
+import { getMovieDetails } from '../services/tmdb.js'
 
 function normalizeReleaseYear(value) {
   const parsed = Number.parseInt(value, 10)
@@ -34,6 +36,14 @@ function normalizeGenres(value) {
   }
 
   return normalized
+}
+
+function extractDirector(movie) {
+  const director = Array.isArray(movie?.credits?.crew)
+    ? movie.credits.crew.find(person => person?.job === 'Director')?.name
+    : null
+
+  return typeof director === 'string' && director.trim() ? director.trim() : null
 }
 
 async function resolveGenreNames(movie) {
@@ -80,6 +90,7 @@ function normalizeItem(raw, fallbackPosition = 0) {
 export const useWatchlistStore = defineStore('watchlist', {
   state: () => ({
     items: [],
+    markingItemIds: [],
     loading: false,
     initialized: false,
     error: '',
@@ -96,8 +107,21 @@ export const useWatchlistStore = defineStore('watchlist', {
   },
 
   actions: {
+    async refreshRecommendations() {
+      const recommendationsStore = useRecommendationsStore()
+      const token = localStorage.getItem('token')
+
+      if (!token) {
+        recommendationsStore.clear()
+        return
+      }
+
+      await recommendationsStore.fetch(true)
+    },
+
     clearState() {
       this.items = []
+      this.markingItemIds = []
       this.error = ''
       this.initialized = false
       this.lastToken = null
@@ -163,6 +187,7 @@ export const useWatchlistStore = defineStore('watchlist', {
         const created = await api.post('/watchlist', payload)
         if (created?.id) {
           this.items.push(normalizeItem(created, this.items.length))
+          await this.refreshRecommendations()
         }
       } catch (error) {
         if (error?.status === 409) return { added: false, reason: 'exists' }
@@ -183,10 +208,72 @@ export const useWatchlistStore = defineStore('watchlist', {
         await api.delete(`/watchlist/${itemId}`)
         this.items.splice(idx, 1)
         this.reindexPositions()
+        await this.refreshRecommendations()
       } catch (error) {
         if (error?.status === 401) {
           this.clearState()
         }
+      }
+    },
+
+    async markAsWatched(item) {
+      const token = localStorage.getItem('token')
+      if (!token) return { ok: false, reason: 'unauthorized' }
+
+      const itemId = Number(item?.id)
+      const tmdbId = Number(item?.tmdb_id)
+      if (!itemId || !tmdbId) return { ok: false, reason: 'invalid' }
+      if (this.markingItemIds.includes(itemId)) return { ok: false, reason: 'busy' }
+
+      this.markingItemIds.push(itemId)
+      this.error = ''
+
+      try {
+        let details = null
+
+        try {
+          details = await getMovieDetails(tmdbId)
+        } catch {
+          // If TMDB details fail, keep going with the watchlist metadata and let
+          // the backend hydrate missing fields lazily for embeddings later.
+        }
+
+        const resolvedGenres = normalizeGenres(details?.genres).length
+          ? normalizeGenres(details?.genres)
+          : normalizeGenres(item?.genres)
+
+        const payload = {
+          tmdb_id: tmdbId,
+          title: details?.title || item.title,
+          overview: typeof details?.overview === 'string' ? details.overview.trim() : '',
+          poster_path: details?.poster_path ?? item.poster_path ?? null,
+          release_year: releaseYearFromMovie(details) ?? releaseYearFromMovie(item),
+          genres: resolvedGenres,
+          director: extractDirector(details),
+        }
+
+        try {
+          await api.post('/history', payload)
+        } catch (error) {
+          if (error?.status !== 409) throw error
+        }
+
+        await api.delete(`/watchlist/${itemId}`)
+        this.items = this.items.filter(entry => Number(entry.id) !== itemId)
+        this.reindexPositions()
+        await this.refreshRecommendations()
+
+        return { ok: true }
+      } catch (error) {
+        if (error?.status === 401) {
+          this.clearState()
+          return { ok: false, reason: 'unauthorized' }
+        }
+
+        this.error = error?.message || 'Failed to mark movie as watched.'
+        return { ok: false, reason: 'failed' }
+      } finally {
+        this.markingItemIds = this.markingItemIds.filter(id => id !== itemId)
       }
     },
 

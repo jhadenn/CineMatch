@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '../services/api.js'
+import { useHistoryStore } from './history.js'
+import { useRecommendationsStore } from './recommendations.js'
 
 const TOKEN_KEY = 'token'
 const USER_KEY = 'cinematch_user'
@@ -82,10 +84,14 @@ export const useAuthStore = defineStore('auth', {
     },
 
     logout() {
+      const historyStore = useHistoryStore()
+      const recommendationsStore = useRecommendationsStore()
       this.user = null
       this.token = null
       localStorage.removeItem(TOKEN_KEY)
       localStorage.removeItem(USER_KEY)
+      historyStore.clearState()
+      recommendationsStore.clear()
     },
   },
 })
