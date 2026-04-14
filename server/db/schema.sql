@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS watch_history (
   user_id      INTEGER NOT NULL REFERENCES users(id),
   tmdb_id      INTEGER NOT NULL,
   title        TEXT NOT NULL,
+  overview     TEXT NOT NULL DEFAULT '',
   poster_path  TEXT,
   genres       TEXT NOT NULL,
   director     TEXT,
@@ -50,5 +51,6 @@ CREATE TABLE IF NOT EXISTS watchlist_shares (
 -- This avoids paying for the same embedding request more than once.
 CREATE TABLE IF NOT EXISTS movie_embeddings (
   tmdb_id   INTEGER PRIMARY KEY,
-  embedding TEXT NOT NULL
+  embedding TEXT NOT NULL,
+  content_hash TEXT
 );

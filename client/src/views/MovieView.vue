@@ -64,6 +64,17 @@
             </svg>
             {{ movie.vote_average?.toFixed(1) }}
           </span>
+          <span
+            v-if="matchBadge"
+            :class="[
+              'flex items-center gap-1.5 px-3 py-1 rounded-full border backdrop-blur',
+              matchBadge.tone,
+            ]"
+            :title="`Based on your watch history and watchlist`"
+          >
+            <span class="inline-block w-2 h-2 rounded-full" :class="matchBadge.dot" />
+            {{ matchBadge.label }}
+          </span>
           <button
             type="button"
             class="px-3 py-1 rounded-full border border-violet-400/40 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
@@ -125,7 +136,10 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getMovieDetails } from '../services/tmdb.js'
+import { getMovieMatch } from '../services/api.js'
 import { useWatchlistStore } from '../stores/watchlist.js'
+import { useHistoryStore } from '../stores/history.js'
+import { useRecommendationsStore } from '../stores/recommendations.js'
 import TrailerEmbed from '../components/movie/TrailerEmbed.vue'
 import CastCarousel from '../components/movie/CastCarousel.vue'
 import MovieCard from '../components/movie/MovieCard.vue'
@@ -133,9 +147,12 @@ import MovieCard from '../components/movie/MovieCard.vue'
 const route = useRoute()
 const router = useRouter()
 const watchlistStore = useWatchlistStore()
+const historyStore = useHistoryStore()
+const recommendationsStore = useRecommendationsStore()
 const movie = ref(null)
 const loading = ref(true)
 const error = ref(false)
+const match = ref(null)
 
 const heroImage = computed(() => {
   if (!movie.value) return null
@@ -157,10 +174,47 @@ const isInWatchlist = computed(() => {
   return watchlistStore.items.some(item => Number(item.tmdb_id) === Number(movie.value.id))
 })
 
+const matchBadge = computed(() => {
+  const percent = match.value?.percent
+  if (!Number.isFinite(percent)) return null
+
+  if (percent >= 80) {
+    return {
+      label: `${percent}% Match for you`,
+      tone: 'border-emerald-400/40 bg-emerald-500/20 text-emerald-100',
+      dot: 'bg-emerald-300',
+    }
+  }
+  if (percent >= 55) {
+    return {
+      label: `${percent}% Match for you`,
+      tone: 'border-violet-400/40 bg-violet-500/20 text-violet-100',
+      dot: 'bg-violet-300',
+    }
+  }
+  return {
+    label: `${percent}% Match for you`,
+    tone: 'border-amber-400/30 bg-amber-500/15 text-amber-100',
+    dot: 'bg-amber-300',
+  }
+})
+
 function formatRuntime(minutes) {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
   return h > 0 ? `${h}h ${m}m` : `${m}m`
+}
+
+async function fetchMatchFor(id) {
+  match.value = null
+  const token = localStorage.getItem('token')
+  if (!token || !id) return
+  try {
+    match.value = await getMovieMatch(id)
+  } catch {
+    // Match is purely additive UI — fail silently so the detail page still renders.
+    match.value = null
+  }
 }
 
 async function fetchMovie(id) {
@@ -168,15 +222,27 @@ async function fetchMovie(id) {
   loading.value = true
   error.value = false
   movie.value = null
+  match.value = null
   try {
     movie.value = await getMovieDetails(id)
     await watchlistStore.initialize()
+    await historyStore.initialize()
+    fetchMatchFor(id)
   } catch {
     error.value = true
   } finally {
     loading.value = false
   }
 }
+
+// When the user saves/removes/watches a movie, their taste profile has
+// changed — refresh the match so the pill stays accurate.
+watch(
+  () => [watchlistStore.items.length, historyStore.items.length, recommendationsStore.lastToken],
+  () => {
+    if (movie.value?.id) fetchMatchFor(movie.value.id)
+  }
+)
 
 async function addCurrentMovieToWatchlist() {
   if (!movie.value) return

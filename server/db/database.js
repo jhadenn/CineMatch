@@ -32,6 +32,14 @@ function runMigrations() {
     migrations.push("ALTER TABLE watchlist ADD COLUMN genres TEXT NOT NULL DEFAULT '[]'");
   }
 
+  if (!hasColumn('watch_history', 'overview')) {
+    migrations.push("ALTER TABLE watch_history ADD COLUMN overview TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!hasColumn('movie_embeddings', 'content_hash')) {
+    migrations.push('ALTER TABLE movie_embeddings ADD COLUMN content_hash TEXT');
+  }
+
   for (const migration of migrations) {
     db.exec(migration);
   }
