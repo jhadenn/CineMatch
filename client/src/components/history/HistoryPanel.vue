@@ -13,10 +13,13 @@
 <script setup>
 import HistoryItem from './HistoryItem.vue'
 
+// Thin list wrapper that owns list-level concerns while each row stays focused
+// on rendering a single history entry.
 defineProps({
   items: { type: Array, required: true },
   removingItemIds: { type: Array, default: () => [] },
 })
 
+// Bubble the selected id back to the parent view/store orchestration layer.
 defineEmits(['remove'])
 </script>

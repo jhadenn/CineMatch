@@ -68,18 +68,25 @@ import HistoryPanel from '../components/history/HistoryPanel.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 const store = useHistoryStore()
+
+// Keep sorting/formatting decisions in the store so the view only consumes
+// render-ready data.
 const items = computed(() => store.sortedItems)
 
 onMounted(() => {
+  // History is an authenticated page, so validate auth before loading data.
   authStore.initialize()
   if (!authStore.isAuthenticated) {
     router.push('/login')
     return
   }
+
+  // `initialize()` avoids duplicate fetches if the user revisits this route.
   store.initialize()
 })
 
 function removeItem(itemId) {
+  // Delegate deletion to the store so it can also refresh recommendations.
   store.removeItem(itemId)
 }
 </script>

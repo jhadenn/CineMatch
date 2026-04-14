@@ -2,11 +2,18 @@ import { defineStore } from 'pinia'
 import api from '../services/api.js'
 import { useRecommendationsStore } from './recommendations.js'
 
+/**
+ * Normalize release years from API payloads into either a numeric year or null.
+ */
 function normalizeReleaseYear(value) {
   const parsed = Number.parseInt(value, 10)
   return Number.isFinite(parsed) ? parsed : null
 }
 
+/**
+ * Accept genre arrays from either the frontend shape (`["Drama"]`) or backend
+ * shape (`[{ name: "Drama" }]`) and return a deduplicated string list.
+ */
 function normalizeGenres(value) {
   if (!Array.isArray(value)) return []
 
@@ -30,6 +37,9 @@ function normalizeGenres(value) {
   return normalized
 }
 
+/**
+ * Coerce raw API rows into the shape the rest of the UI expects.
+ */
 function normalizeItem(raw) {
   return {
     id: raw.id,
@@ -55,6 +65,7 @@ export const useHistoryStore = defineStore('history', {
 
   getters: {
     sortedItems(state) {
+      // History is most useful when the newest "taste signals" appear first.
       return [...state.items].sort((a, b) => {
         const first = Date.parse(a.watched_at || '') || 0
         const second = Date.parse(b.watched_at || '') || 0
@@ -65,6 +76,8 @@ export const useHistoryStore = defineStore('history', {
 
   actions: {
     async refreshRecommendations() {
+      // Recommendations depend on watch history, so removing an item should
+      // immediately refresh the recommendation feed as well.
       const recommendationsStore = useRecommendationsStore()
       const token = localStorage.getItem('token')
 
@@ -77,6 +90,7 @@ export const useHistoryStore = defineStore('history', {
     },
 
     clearState() {
+      // Reuse one reset path for logout, expired tokens, and first-load states.
       this.items = []
       this.removingItemIds = []
       this.loading = false
@@ -93,6 +107,8 @@ export const useHistoryStore = defineStore('history', {
       }
 
       const tokenChanged = this.lastToken !== token
+      // Avoid refetching on every navigation unless auth changed or a caller
+      // explicitly requests a refresh.
       if (this.initialized && !force && !tokenChanged) return
 
       this.initialized = true
@@ -111,6 +127,7 @@ export const useHistoryStore = defineStore('history', {
       this.error = ''
       try {
         const data = await api.get('/history')
+        // Support both `{ items: [...] }` and bare-array responses.
         const items = Array.isArray(data) ? data : (data.items || [])
         this.items = items.map(normalizeItem)
       } catch (error) {
@@ -129,6 +146,7 @@ export const useHistoryStore = defineStore('history', {
       if (!token) return
 
       const numericId = Number(itemId)
+      // Ignore duplicate clicks while the delete request is already in flight.
       if (!numericId || this.removingItemIds.includes(numericId)) return
 
       this.removingItemIds.push(numericId)

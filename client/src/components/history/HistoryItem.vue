@@ -55,6 +55,8 @@ const props = defineProps({
 
 defineEmits(['remove'])
 
+// Keep the component presentation-only by deriving display labels from the
+// normalized store item rather than mutating the source object.
 const poster = computed(() => posterUrl(props.item.poster_path))
 
 const releaseYear = computed(() => {
@@ -63,6 +65,7 @@ const releaseYear = computed(() => {
 })
 
 const genres = computed(() => {
+  // The card only has room for a small amount of metadata, so cap the list.
   if (!Array.isArray(props.item.genres)) return []
 
   return props.item.genres
@@ -72,6 +75,7 @@ const genres = computed(() => {
 })
 
 const watchedLabel = computed(() => {
+  // Fall back to a vague label when legacy rows do not have a parseable date.
   const parsed = Date.parse(props.item.watched_at || '')
   if (!parsed) return 'recently'
 
@@ -82,5 +86,7 @@ const watchedLabel = computed(() => {
   }).format(parsed)
 })
 
+// Join the compact metadata row in the template without leaking formatting
+// concerns into the store.
 const metadataSegments = computed(() => [releaseYear.value, ...genres.value].filter(Boolean))
 </script>
