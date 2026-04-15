@@ -9,10 +9,29 @@ function normalizeReleaseYear(value) {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+function normalizeRuntime(value) {
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function normalizeVoteAverage(value) {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
 function releaseYearFromMovie(movie) {
   if (movie?.release_year != null) return normalizeReleaseYear(movie.release_year)
   if (typeof movie?.release_date !== 'string') return null
   return normalizeReleaseYear(movie.release_date.slice(0, 4))
+}
+
+function runtimeFromMovie(movie) {
+  return normalizeRuntime(movie?.runtime)
+}
+
+function voteAverageFromMovie(movie) {
+  return normalizeVoteAverage(movie?.vote_average)
 }
 
 function normalizeGenres(value) {
@@ -81,6 +100,8 @@ function normalizeItem(raw, fallbackPosition = 0) {
     poster_path: raw.poster_path ?? null,
     release_year: normalizeReleaseYear(raw.release_year),
     release_date: raw.release_date ?? null,
+    runtime: normalizeRuntime(raw.runtime),
+    vote_average: normalizeVoteAverage(raw.vote_average),
     genres: normalizeGenres(raw.genres),
     added_at: raw.added_at ?? new Date().toISOString(),
     position: Number.isFinite(position) ? position : fallbackPosition,
@@ -180,6 +201,8 @@ export const useWatchlistStore = defineStore('watchlist', {
         title: movie.title,
         poster_path: movie.poster_path || null,
         release_year: releaseYearFromMovie(movie),
+        runtime: runtimeFromMovie(movie),
+        vote_average: voteAverageFromMovie(movie),
         genres: await resolveGenreNames(movie),
       }
 
@@ -248,6 +271,8 @@ export const useWatchlistStore = defineStore('watchlist', {
           overview: typeof details?.overview === 'string' ? details.overview.trim() : '',
           poster_path: details?.poster_path ?? item.poster_path ?? null,
           release_year: releaseYearFromMovie(details) ?? releaseYearFromMovie(item),
+          runtime: runtimeFromMovie(details) ?? runtimeFromMovie(item),
+          vote_average: voteAverageFromMovie(details) ?? voteAverageFromMovie(item),
           genres: resolvedGenres,
           director: extractDirector(details),
         }

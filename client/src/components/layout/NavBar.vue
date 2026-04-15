@@ -21,14 +21,11 @@
           </svg>
           <span>Watchlist</span>
         </RouterLink>
-        <RouterLink to="/dashboard" :class="navLinkClass(route.path.startsWith('/dashboard'))">
+        <RouterLink v-if="authStore.isAuthenticated" to="/dashboard" :class="navLinkClass(route.path.startsWith('/dashboard'))">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            <circle cx="8" cy="6" r="2" fill="none" />
-            <circle cx="16" cy="12" r="2" fill="none" />
-            <circle cx="10" cy="18" r="2" fill="none" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 15l4-4 3 3 5-6" />
           </svg>
-          <span>Preferences</span>
+          <span>Dashboard</span>
         </RouterLink>
         <RouterLink v-if="authStore.isAuthenticated" to="/recommendations" :class="navLinkClass(route.path.startsWith('/recommendations'))">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -83,14 +80,6 @@
               <p class="text-xs text-gray-400">Signed in as</p>
               <p class="text-sm text-violet-200 font-medium truncate">{{ authStore.user?.username || authStore.user?.email }}</p>
             </div>
-            <RouterLink
-              to="/history"
-              class="mt-1 flex items-center rounded-lg px-3 py-2 text-sm text-gray-200 hover:bg-violet-500/20 hover:text-violet-100 transition-colors"
-              role="menuitem"
-              @click="closeAccountMenu"
-            >
-              Watch History
-            </RouterLink>
             <button
               type="button"
               class="mt-1 w-full text-left flex items-center rounded-lg px-3 py-2 text-sm text-gray-200 hover:bg-violet-500/20 hover:text-violet-100 transition-colors"

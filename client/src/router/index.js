@@ -3,7 +3,6 @@ import HomeView from '../views/HomeView.vue'
 import SearchView from '../views/SearchView.vue'
 import MovieView from '../views/MovieView.vue'
 import WatchlistView from '../views/WatchlistView.vue'
-import HistoryView from '../views/HistoryView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import RecommendationsView from '../views/RecommendationsView.vue'
 import LoginView from '../views/LoginView.vue'
@@ -14,7 +13,9 @@ const routes = [
   { path: '/search',         component: SearchView },
   { path: '/movie/:id',      component: MovieView },
   { path: '/watchlist',      component: WatchlistView,      meta: { requiresAuth: true } },
-  { path: '/history',        component: HistoryView,        meta: { requiresAuth: true } },
+  // Watch history now lives inside the Watchlist page behind a tab toggle.
+  // Redirect legacy `/history` links so external bookmarks keep working.
+  { path: '/history',        redirect: { path: '/watchlist', query: { view: 'history' } } },
   { path: '/dashboard',      component: DashboardView,      meta: { requiresAuth: true } },
   { path: '/recommendations', component: RecommendationsView, meta: { requiresAuth: true } },
   { path: '/login',          component: LoginView },

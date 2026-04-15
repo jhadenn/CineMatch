@@ -15,12 +15,29 @@
 
     <!-- Filter panel -->
     <div class="mb-7">
-      <FilterPanel
-        :filters="store.filters"
-        :genres="store.genres"
-        @update="onFilterUpdate"
-        @clear="onClearFilters"
-      />
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-white">Filters</h2>
+          <p class="text-sm text-gray-400">Narrow the catalog by genre, year, and rating.</p>
+        </div>
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-100 transition-colors hover:border-violet-400/45 hover:bg-violet-500/20"
+          :aria-expanded="filtersOpen ? 'true' : 'false'"
+          @click="toggleFilters"
+        >
+          {{ filtersOpen ? 'Hide Filters' : 'Show Filters' }}
+        </button>
+      </div>
+
+      <div ref="filtersPanelRef" class="overflow-hidden">
+        <FilterPanel
+          :filters="store.filters"
+          :genres="store.genres"
+          @update="onFilterUpdate"
+          @clear="onClearFilters"
+        />
+      </div>
     </div>
 
     <!-- Result count -->
@@ -75,7 +92,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted, watch } from 'vue'
+import $ from 'jquery'
 import { useRoute, useRouter } from 'vue-router'
 import { useMoviesStore } from '../stores/movies.js'
 import SearchBar from '../components/search/SearchBar.vue'
@@ -86,6 +104,8 @@ const store = useMoviesStore()
 const route = useRoute()
 const router = useRouter()
 const searchQuery = ref('')
+const filtersOpen = ref(true)
+const filtersPanelRef = ref(null)
 
 // The page switches between browse-mode cards and search-mode cards based on
 // whether the search box currently contains text.
@@ -112,6 +132,10 @@ const pageNumbers = computed(() => {
 onMounted(async () => {
   await store.fetchGenres()
   applyRouteState()
+  await nextTick()
+  if (filtersPanelRef.value) {
+    $(filtersPanelRef.value).show()
+  }
 })
 
 watch(searchQuery, (q) => {
@@ -198,6 +222,15 @@ function onFilterUpdate(updates) {
 
 function onClearFilters() {
   store.setFilters({ genre: null, yearFrom: null, yearTo: null, minRating: 0 })
+}
+
+function toggleFilters() {
+  filtersOpen.value = !filtersOpen.value
+
+  const panel = filtersPanelRef.value
+  if (!panel) return
+
+  $(panel).stop(true, true)[filtersOpen.value ? 'slideDown' : 'slideUp'](180)
 }
 
 function goToPage(page) {

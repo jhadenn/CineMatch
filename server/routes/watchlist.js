@@ -5,22 +5,22 @@ const requireAuth = require('../middleware/auth');
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const selectWatchlistItemsStmt = db.prepare(
-  `SELECT id, tmdb_id, title, poster_path, release_year, genres, position, added_at
+  `SELECT id, tmdb_id, title, poster_path, release_year, genres, runtime, vote_average, position, added_at
    FROM watchlist
    WHERE user_id = ?
    ORDER BY position ASC, added_at ASC`
 );
 const selectWatchlistItemStmt = db.prepare(
-  `SELECT id, tmdb_id, title, poster_path, release_year, genres, position, added_at
+  `SELECT id, tmdb_id, title, poster_path, release_year, genres, runtime, vote_average, position, added_at
    FROM watchlist
    WHERE id = ? AND user_id = ?`
 );
 const insertWatchlistItemStmt = db.prepare(
-  `INSERT INTO watchlist (user_id, tmdb_id, title, poster_path, release_year, genres, position)
-   VALUES (?, ?, ?, ?, ?, ?, ?)`
+  `INSERT INTO watchlist (user_id, tmdb_id, title, poster_path, release_year, genres, runtime, vote_average, position)
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 );
 const updateWatchlistMetadataStmt = db.prepare(
-  'UPDATE watchlist SET release_year = ?, genres = ? WHERE id = ? AND user_id = ?'
+  'UPDATE watchlist SET release_year = ?, genres = ?, runtime = ?, vote_average = ? WHERE id = ? AND user_id = ?'
 );
 
 function getNextPosition(userId) {
@@ -38,6 +38,20 @@ function normalizeReleaseYear(value) {
 function releaseYearFromDate(releaseDate) {
   if (typeof releaseDate !== 'string') return null;
   return normalizeReleaseYear(releaseDate.slice(0, 4));
+}
+
+function normalizeRuntime(value) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function normalizeVoteAverage(value) {
+  // SQLite NULLs arrive as JS null, which `Number(null)` coerces to 0 — treat
+  // missing values (and TMDB's "unrated" 0) as null so the hydrator re-fetches
+  // them instead of baking "0.0" into the UI.
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 function normalizeGenres(value) {
@@ -83,6 +97,8 @@ function toResponseItem(item) {
     ...item,
     release_year: normalizeReleaseYear(item.release_year),
     genres: parseStoredGenres(item.genres),
+    runtime: normalizeRuntime(item.runtime),
+    vote_average: normalizeVoteAverage(item.vote_average),
   };
 }
 
@@ -102,17 +118,28 @@ async function fetchTmdbMetadata(tmdbId) {
   return {
     release_year: releaseYearFromDate(payload?.release_date),
     genres: normalizeGenres(payload?.genres),
+    runtime: normalizeRuntime(payload?.runtime),
+    vote_average: normalizeVoteAverage(payload?.vote_average),
   };
 }
 
-async function resolveWatchlistMetadata({ tmdbId, releaseYear, genres }) {
+async function resolveWatchlistMetadata({ tmdbId, releaseYear, genres, runtime, voteAverage }) {
   const normalizedReleaseYear = normalizeReleaseYear(releaseYear);
   const normalizedGenres = normalizeGenres(genres);
+  const normalizedRuntime = normalizeRuntime(runtime);
+  const normalizedVoteAverage = normalizeVoteAverage(voteAverage);
 
-  if (normalizedReleaseYear !== null && normalizedGenres.length > 0) {
+  if (
+    normalizedReleaseYear !== null
+    && normalizedGenres.length > 0
+    && normalizedRuntime !== null
+    && normalizedVoteAverage !== null
+  ) {
     return {
       release_year: normalizedReleaseYear,
       genres: normalizedGenres,
+      runtime: normalizedRuntime,
+      vote_average: normalizedVoteAverage,
     };
   }
 
@@ -121,12 +148,16 @@ async function resolveWatchlistMetadata({ tmdbId, releaseYear, genres }) {
     return {
       release_year: normalizedReleaseYear ?? fetchedMetadata.release_year,
       genres: normalizedGenres.length > 0 ? normalizedGenres : fetchedMetadata.genres,
+      runtime: normalizedRuntime ?? fetchedMetadata.runtime,
+      vote_average: normalizedVoteAverage ?? fetchedMetadata.vote_average,
     };
   } catch (error) {
     console.error(`Watchlist metadata lookup failed for TMDB id ${tmdbId}:`, error);
     return {
       release_year: normalizedReleaseYear,
       genres: normalizedGenres,
+      runtime: normalizedRuntime,
+      vote_average: normalizedVoteAverage,
     };
   }
 }
@@ -134,21 +165,29 @@ async function resolveWatchlistMetadata({ tmdbId, releaseYear, genres }) {
 async function hydrateWatchlistItem(item, userId) {
   const storedReleaseYear = normalizeReleaseYear(item.release_year);
   const storedGenres = parseStoredGenres(item.genres);
+  const storedRuntime = normalizeRuntime(item.runtime);
+  const storedVoteAverage = normalizeVoteAverage(item.vote_average);
   const resolvedMetadata = await resolveWatchlistMetadata({
     tmdbId: item.tmdb_id,
     releaseYear: storedReleaseYear,
     genres: storedGenres,
+    runtime: storedRuntime,
+    voteAverage: storedVoteAverage,
   });
 
   const serializedStoredGenres = serializeGenres(storedGenres);
   const serializedResolvedGenres = serializeGenres(resolvedMetadata.genres);
   const releaseYearChanged = resolvedMetadata.release_year !== storedReleaseYear;
   const genresChanged = serializedResolvedGenres !== serializedStoredGenres;
+  const runtimeChanged = resolvedMetadata.runtime !== storedRuntime;
+  const voteAverageChanged = resolvedMetadata.vote_average !== storedVoteAverage;
 
-  if (releaseYearChanged || genresChanged) {
+  if (releaseYearChanged || genresChanged || runtimeChanged || voteAverageChanged) {
     updateWatchlistMetadataStmt.run(
       resolvedMetadata.release_year,
       serializedResolvedGenres,
+      resolvedMetadata.runtime,
+      resolvedMetadata.vote_average,
       item.id,
       userId
     );
@@ -158,6 +197,8 @@ async function hydrateWatchlistItem(item, userId) {
     ...item,
     release_year: resolvedMetadata.release_year,
     genres: resolvedMetadata.genres,
+    runtime: resolvedMetadata.runtime,
+    vote_average: resolvedMetadata.vote_average,
   };
 }
 
@@ -185,6 +226,8 @@ router.post('/', requireAuth, async (req, res) => {
   const posterPath = req.body?.poster_path ? String(req.body.poster_path) : null;
   const requestedReleaseYear = normalizeReleaseYear(req.body?.release_year);
   const requestedGenres = normalizeGenres(req.body?.genres);
+  const requestedRuntime = normalizeRuntime(req.body?.runtime);
+  const requestedVoteAverage = normalizeVoteAverage(req.body?.vote_average);
 
   if (!tmdbId || !title) {
     return res.status(400).json({ error: 'tmdb_id and title are required.' });
@@ -195,6 +238,8 @@ router.post('/', requireAuth, async (req, res) => {
       tmdbId,
       releaseYear: requestedReleaseYear,
       genres: requestedGenres,
+      runtime: requestedRuntime,
+      voteAverage: requestedVoteAverage,
     });
     const position = getNextPosition(req.user.id);
     const result = insertWatchlistItemStmt.run(
@@ -204,6 +249,8 @@ router.post('/', requireAuth, async (req, res) => {
       posterPath,
       metadata.release_year,
       serializeGenres(metadata.genres),
+      metadata.runtime,
+      metadata.vote_average,
       position
     );
 

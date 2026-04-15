@@ -1,4 +1,4 @@
-# CineMatch — Product Requirements Document
+﻿# CineMatch â€” Product Requirements Document
 
 **Version:** 1.0  
 **Due:** April 17, 2025  
@@ -31,7 +31,7 @@ CineMatch is a personalized movie discovery and recommendation web application. 
 
 ## Problem & Goals
 
-Deciding what to watch is overwhelming — streaming platforms surface algorithmic content that favors their own catalogue. CineMatch puts the user in control: a personal watchlist and viewing history feed a transparent recommendation engine, and dashboards reveal patterns in their own taste over time.
+Deciding what to watch is overwhelming â€” streaming platforms surface algorithmic content that favors their own catalogue. CineMatch puts the user in control: a personal watchlist and viewing history feed a transparent recommendation engine, and dashboards reveal patterns in their own taste over time.
 
 **Goals:**
 - Let users discover movies through search, filters, and smart recommendations
@@ -68,7 +68,6 @@ Deciding what to watch is overwhelming — streaming platforms surface algorithm
 - Add/remove movies to a personal watchlist
 - Mark movies as watched (moves to history)
 - Drag-and-drop reordering of watchlist items
-- Shareable watchlist link via generated URL token
 
 ### 3. Movie Detail Page
 
@@ -88,10 +87,10 @@ Deciding what to watch is overwhelming — streaming platforms surface algorithm
 
 ### 5. Taste Dashboard
 
-- **Genre breakdown** — D3 pie/donut chart of watched genres
-- **Watch history timeline** — D3 line chart of movies watched per month
-- **Decade heatmap** — D3 heatmap of movies by decade and genre
-- **Top directors** — D3 horizontal bar chart of most-watched directors
+- **Genre breakdown** - D3 pie/donut chart of watched genres
+- **Mood preferences** - D3 radar chart derived from the genres in watch history
+- **Watch history timeline** - D3 line/area chart of movies watched per month
+- **Movies by decade** - D3 bar chart of watched movies grouped by release decade
 
 ### 6. Authentication
 
@@ -254,7 +253,7 @@ App.vue
  
 ## Express API Routes
  
-### Auth — `/api/auth`
+### Auth  `/api/auth`
  
 | Method | Route       | Description              | Auth required |
 |--------|-------------|--------------------------|---------------|
@@ -262,7 +261,7 @@ App.vue
 | POST   | `/login`    | Login, returns JWT       | No            |
 | GET    | `/me`       | Get current user profile | Yes           |
  
-### Watchlist — `/api/watchlist`
+### Watchlist  `/api/watchlist`
  
 | Method | Route    | Description                        | Auth required |
 |--------|----------|------------------------------------|---------------|
@@ -270,9 +269,8 @@ App.vue
 | POST   | `/`      | Add movie to watchlist             | Yes           |
 | DELETE | `/:id`   | Remove movie from watchlist        | Yes           |
 | PATCH  | `/order` | Update watchlist item order        | Yes           |
-| GET    | `/share/:token` | Get shared watchlist (public) | No        |
  
-### Watch History — `/api/history`
+### Watch History  `/api/history`
  
 | Method | Route   | Description                      | Auth required |
 |--------|---------|----------------------------------|---------------|
@@ -280,7 +278,7 @@ App.vue
 | POST   | `/`     | Mark a movie as watched          | Yes           |
 | DELETE | `/:id`  | Remove from history              | Yes           |
  
-### Recommendations — `/api/recommendations`
+### Recommendations  `/api/recommendations`
  
 | Method | Route | Description                                      | Auth required |
 |--------|-------|--------------------------------------------------|---------------|
@@ -326,13 +324,6 @@ CREATE TABLE watch_history (
   UNIQUE(user_id, tmdb_id)
 );
  
--- Shared watchlist tokens
-CREATE TABLE watchlist_shares (
-  id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id     INTEGER NOT NULL REFERENCES users(id),
-  token       TEXT UNIQUE NOT NULL,
-  created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
-);
 ```
  
 ---
@@ -345,18 +336,18 @@ CREATE TABLE watchlist_shares (
  
 ### How it works
  
-1. **Embed each watched movie** — when a user marks a movie as watched, the server sends a text document (`"Title. Overview. Genres: Action, Drama. Director: Christopher Nolan"`) to the OpenAI Embeddings API and receives a 1536-dimension vector back. This vector is stored in the DB so the API is only ever called once per movie.
+1. **Embed each watched movie** â€” when a user marks a movie as watched, the server sends a text document (`"Title. Overview. Genres: Action, Drama. Director: Christopher Nolan"`) to the OpenAI Embeddings API and receives a 1536-dimension vector back. This vector is stored in the DB so the API is only ever called once per movie.
  
-2. **Build a user profile vector** — average all embedding vectors from the user's watch history into a single profile vector representing their taste.
+2. **Build a user profile vector** average all embedding vectors from the user's watch history into a single profile vector representing their taste.
  
-3. **Score candidate movies** — fetch trending + popular movies from TMDB that the user hasn't watched. Embed any that aren't already cached. Compute cosine similarity between each candidate's vector and the user's profile vector.
+3. **Score candidate movies** fetch trending + popular movies from TMDB that the user hasn't watched. Embed any that aren't already cached. Compute cosine similarity between each candidate's vector and the user's profile vector.
  
 4. **Return top N results** sorted by similarity score.
  
 ### Why this approach is resume-worthy
  
 - Uses the same embedding + cosine similarity pattern behind production recommendation systems at companies like Spotify and Netflix
-- `text-embedding-3-small` captures semantic meaning — it understands that *Blade Runner* and *Ex Machina* are similar even if they share no cast or genre tags
+- `text-embedding-3-small` captures semantic meaning  it understands that *Blade Runner* and *Ex Machina* are similar even if they share no cast or genre tags
 - Can be honestly described as: *"Built a semantic recommendation engine using OpenAI vector embeddings and cosine similarity"*
  
 ### Implementation sketch (`server/services/recommender.js`)
@@ -405,7 +396,7 @@ function averageVectors(vectors) {
   return sum.map(v => v / vectors.length);
 }
  
-// Main export — called by GET /api/recommendations
+// Main export â€” called by GET /api/recommendations
 async function getRecommendations(watchedMovies, candidates) {
   if (watchedMovies.length === 0) return candidates.slice(0, 10);
  
@@ -439,6 +430,7 @@ CREATE TABLE movie_embeddings (
  
 ```
 OPENAI_API_KEY=sk-...
+TMDB_API_KEY=...
 ```
  
 ---
@@ -454,22 +446,26 @@ The UI follows a modern aesthetic, using a minimalist, component-driven design s
 |----------------------|--------------------------------------------------------------------------------|-------|
 | SVG & HTML           | Custom SVG logo, SVG icons for genre badges, watchlist empty state illustration | 1.0   |
 | CSS & frameworks     | Tailwind CSS utility classes, custom CSS transitions for card hover states      | 1.0   |
-| JavaScript, jQuery, D3 | D3 genre pie, timeline line chart, decade heatmap, director bar chart        | 1.5   |
+| JavaScript, jQuery, D3 | D3 genre pie, mood radar chart, watch cadence, decade bar chart             | 1.5   |
 | Dynamic DOM          | Live search filtering, infinite scroll results, drag-and-drop watchlist order  | 1.5   |
 | AJAX & web services  | TMDB API (search, details, trailers, similar); own REST API for user data      | 1.0   |
 | Node / Express       | Express REST API: auth, watchlist, history, recommendations endpoints          | 1.5   |
 | Vue framework        | Composition API components, Vue Router, Pinia stores, reactive data binding    | 2.5   |
 | New technology       | Semantic recommendation engine using OpenAI `text-embedding-3-small` API           | 1.0   |
-| Intro video          | 3–5 min screen recording demonstrating all features and technologies            | 4.0   |
+| Intro video          | 3â€“5 min screen recording demonstrating all features and technologies            | 4.0   |
 | **Total**            |                                                                                | **10.0** |
 
 
 ## Submission Checklist
 - [X] No hardcoded API keys (use `.env` with `.env.example` provided)
-- [X] App runs with `npm install` + `npm run dev` from project root
-- [ ] `group_members.html` — table with all member names and Banner IDs
-- [ ] `contributions.txt` — each member's specific contributions listed
-- [ ] `intro.mp4` — 3–5 min promo video demonstrating all features (and new technology)
-- [ ] README with clear setup steps (clone → install → add `.env` → run)
+- [X] App runs after installing root + client dependencies, then starting `npm run dev:server` and `npm run dev` in separate terminals
+- [] `readme.txt`  Instructions on how to run your web app
+- [X] `group_members.html`  table with all member names and Banner IDs
+- [X] `contributions.txt` = each member's specific contributions listed
+- [X] `intro.mp4` 5 min promo video demonstrating all features (and new technology)
+- [X] README with clear setup steps (clone and install and add `.env` to run)
 
 ---
+
+
+

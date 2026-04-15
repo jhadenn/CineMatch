@@ -48,6 +48,55 @@ npm run dev
 
 Open http://localhost:5173 in your browser.
 
+### 5. Run a production-style local build
+
+Build the Vue frontend:
+
+```bash
+npm run build
+```
+
+Start Express in normal mode:
+
+```bash
+npm start
+```
+
+Open http://localhost:3000 in your browser.
+
+## Scripts
+
+- `npm run dev:server`
+  Starts the Express backend with `nodemon`.
+- `npm run dev`
+  Alias for `npm run dev:client`.
+- `npm run dev:client`
+  Starts the Vite frontend development server.
+- `npm run build`
+  Builds the Vue app into `client/dist`.
+- `npm start`
+  Starts Express in normal mode and serves the built frontend from `client/dist` when available.
+
+## Example Usage
+
+```bash
+# backend only
+npm run dev:server
+
+# frontend only
+npm run dev:client
+
+# full development
+# terminal 1
+npm run dev:server
+# terminal 2
+npm run dev
+
+# production-style local run
+npm run build
+npm start
+```
+
 ## Tech Stack
 
 | Layer    | Technology                          |

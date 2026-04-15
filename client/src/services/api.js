@@ -41,6 +41,10 @@ export function getMovieMatch(tmdbId) {
   return request('GET', `/recommendations/match/${tmdbId}`)
 }
 
+export function getStats() {
+  return request('GET', '/history/stats')
+}
+
 export default {
   get:    (path)        => request('GET',    path),
   post:   (path, body)  => request('POST',   path, body),
@@ -48,4 +52,5 @@ export default {
   delete: (path)        => request('DELETE', path),
   getRecommendations,
   getMovieMatch,
+  getStats,
 }

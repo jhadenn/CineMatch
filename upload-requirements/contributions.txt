@@ -1,0 +1,26 @@
+CineMatch - Team Contributions
+
+[Jhaden Goy] (100916409)
+- [Search & Browse Feature]
+- [Recommendation Engine & Corresponding Implementations]
+
+[Abinan Suthakaran] (100921932)
+- [Watchlist Feature]
+- [Watch History Feature]
+- [Bug Fixes]
+
+[Omar Abdalla] (100921010)
+- [Taste Dashboard Page]
+- [Contribution 2]
+
+[Nimdula Perera] (100917197)
+- [Contribution 1]
+- [Contribution 2]
+
+[Zubair Rashid] ([BannerID])
+- [Contribution 1]
+- [Contribution 2]
+
+
+Shared / team-wide work
+- [Planning / design / debugging / testing / presentation prep]

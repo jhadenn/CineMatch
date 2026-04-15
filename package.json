@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "Personalized movie discovery and recommendation app",
   "scripts": {
+    "build": "npm --prefix client run build",
+    "dev:client": "npm --prefix client run dev",
     "dev:server": "nodemon server/index.js",
-    "dev": "npm --prefix client run dev"
+    "dev": "npm run dev:client",
+    "start": "node server/index.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

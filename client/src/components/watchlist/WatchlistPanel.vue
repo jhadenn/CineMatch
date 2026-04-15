@@ -1,5 +1,5 @@
 <template>
-  <section class="space-y-3 sm:space-y-4">
+  <section class="space-y-5">
     <WatchlistItem
       v-for="(item, index) in items"
       :key="item.id"

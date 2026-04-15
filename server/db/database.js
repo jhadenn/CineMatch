@@ -32,8 +32,24 @@ function runMigrations() {
     migrations.push("ALTER TABLE watchlist ADD COLUMN genres TEXT NOT NULL DEFAULT '[]'");
   }
 
+  if (!hasColumn('watchlist', 'runtime')) {
+    migrations.push('ALTER TABLE watchlist ADD COLUMN runtime INTEGER');
+  }
+
+  if (!hasColumn('watchlist', 'vote_average')) {
+    migrations.push('ALTER TABLE watchlist ADD COLUMN vote_average REAL');
+  }
+
   if (!hasColumn('watch_history', 'overview')) {
     migrations.push("ALTER TABLE watch_history ADD COLUMN overview TEXT NOT NULL DEFAULT ''");
+  }
+
+  if (!hasColumn('watch_history', 'runtime')) {
+    migrations.push('ALTER TABLE watch_history ADD COLUMN runtime INTEGER');
+  }
+
+  if (!hasColumn('watch_history', 'vote_average')) {
+    migrations.push('ALTER TABLE watch_history ADD COLUMN vote_average REAL');
   }
 
   if (!hasColumn('movie_embeddings', 'content_hash')) {

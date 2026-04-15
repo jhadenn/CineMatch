@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS watchlist (
   poster_path TEXT,
   release_year INTEGER,
   genres      TEXT NOT NULL DEFAULT '[]',
+  runtime     INTEGER,
+  vote_average REAL,
   position    INTEGER NOT NULL DEFAULT 0,
   added_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, tmdb_id)
@@ -35,6 +37,8 @@ CREATE TABLE IF NOT EXISTS watch_history (
   genres       TEXT NOT NULL,
   director     TEXT,
   release_year INTEGER,
+  runtime      INTEGER,
+  vote_average REAL,
   watched_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(user_id, tmdb_id)
 );

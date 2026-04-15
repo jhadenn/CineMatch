@@ -1,0 +1,19 @@
+CineMatch - AI Prompt Log
+
+Entry 1
+Tool: [ChatGPT / Claude / Copilot / etc.]
+Date: [YYYY-MM-DD]
+Purpose: [What problem you were solving]
+Prompt: [Paste the exact prompt]
+Output used: [What part of the answer/code/design was used]
+Files or features affected: [List files/features]
+Manual edits after AI output: [What you changed yourself]
+
+Entry 2
+Tool:
+Date:
+Purpose:
+Prompt:
+Output used:
+Files or features affected:
+Manual edits after AI output:

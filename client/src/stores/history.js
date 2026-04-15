@@ -10,6 +10,17 @@ function normalizeReleaseYear(value) {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+function normalizeRuntime(value) {
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function normalizeVoteAverage(value) {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
 /**
  * Accept genre arrays from either the frontend shape (`["Drama"]`) or backend
  * shape (`[{ name: "Drama" }]`) and return a deduplicated string list.
@@ -48,6 +59,8 @@ function normalizeItem(raw) {
     overview: raw.overview ?? '',
     poster_path: raw.poster_path ?? null,
     release_year: normalizeReleaseYear(raw.release_year),
+    runtime: normalizeRuntime(raw.runtime),
+    vote_average: normalizeVoteAverage(raw.vote_average),
     genres: normalizeGenres(raw.genres),
     watched_at: raw.watched_at ?? null,
   }
