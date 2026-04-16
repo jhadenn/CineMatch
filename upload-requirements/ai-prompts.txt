@@ -10,10 +10,10 @@ Files or features affected: SQLite database
 Manual edits after AI output: username, password, various movie data
 
 Entry 2
-Tool:
-Date:
-Purpose:
-Prompt:
-Output used:
-Files or features affected:
-Manual edits after AI output:
+Tool: ChatGPT
+Date: [2026-04-16]
+Purpose: Create site logo
+Prompt: Create me a logo for a movie website using this colour: #f5b44f
+Output used: logo png
+Files or features affected: Navbar, favicon in browser
+Manual edits after AI output: None
