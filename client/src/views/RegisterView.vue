@@ -1,12 +1,13 @@
 <template>
-  <div class="min-h-[calc(100vh-72px)] bg-gray-950 px-4 py-10 sm:py-14">
-    <div class="mx-auto w-full max-w-md">
-      <div class="rounded-3xl border border-violet-400/20 bg-white/[0.03] p-6 sm:p-7 shadow-xl shadow-black/30 backdrop-blur-sm">
-        <p class="text-xs font-semibold tracking-wider text-violet-300 uppercase">Join CineMatch</p>
-        <h1 class="mt-2 text-3xl font-bold text-white">Create your account</h1>
-        <p class="mt-2 text-sm text-gray-400">Start building your watchlist in seconds.</p>
+  <div class="page-shell-narrow min-h-[calc(100vh-120px)]">
+    <div class="glass-panel-strong mx-auto max-w-md overflow-hidden p-6 sm:p-8">
+      <div class="floating-accent" />
+      <div class="relative z-10">
+        <p class="section-kicker">Join CineMatch</p>
+        <h1 class="section-title text-[clamp(2.25rem,8vw,3.3rem)]">Create your account</h1>
+        <p class="section-subtitle max-w-none">Start building your watchlist in seconds and unlock a cleaner, more personalized movie discovery flow.</p>
 
-        <div class="mt-6">
+        <div class="mt-8">
           <RegisterForm
             :submitting="submitting"
             :error-message="errorMessage"
@@ -14,9 +15,9 @@
           />
         </div>
 
-        <p class="mt-6 text-sm text-gray-400">
+        <p class="mt-6 text-sm text-[rgba(225,220,212,0.62)]">
           Already have an account?
-          <RouterLink to="/login" class="text-violet-300 hover:text-violet-200 transition-colors">Log in</RouterLink>
+          <RouterLink to="/login" class="ml-1 text-[#ffd89d] transition-colors hover:text-[#fff1cf]">Log in</RouterLink>
         </p>
       </div>
     </div>

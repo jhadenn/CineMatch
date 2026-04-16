@@ -35,13 +35,11 @@ function render() {
   selection.selectAll('*').remove()
 
   if (!props.data.length) {
-    // Keep a minimum height so the card doesn't collapse on empty data.
     selection.attr('width', width).attr('height', 160).attr('viewBox', `0 0 ${width} 160`)
     return
   }
 
   const decades = Array.from(new Set(props.data.map((datum) => datum.decade))).sort((a, b) => a - b)
-  // Genres ordered by total movies so the densest rows sit at the top.
   const totalsByGenre = d3.rollup(props.data, (values) => d3.sum(values, (datum) => datum.count), (datum) => datum.genre)
   const genres = [...totalsByGenre.entries()]
     .sort((a, b) => b[1] - a[1])
@@ -60,9 +58,9 @@ function render() {
   const xScale = d3.scaleBand().domain(decades).range([0, innerWidth]).padding(0.08)
   const yScale = d3.scaleBand().domain(genres).range([0, innerHeight]).padding(0.12)
   const maxCount = d3.max(props.data, (datum) => datum.count) || 1
-  // Start the color domain slightly below zero so even count=1 cells stay
-  // visible against the dark card background.
-  const color = d3.scaleSequential(d3.interpolatePurples).domain([-maxCount * 0.25, maxCount])
+  const color = d3.scaleSequential(
+    d3.interpolateRgbBasis(['#120e08', '#3a2612', '#8a541a', '#f5b44f'])
+  ).domain([-maxCount * 0.25, maxCount])
 
   const group = selection.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`)
 
@@ -80,9 +78,9 @@ function render() {
     .attr('stroke', 'rgba(148, 163, 184, 0.15)')
     .style('cursor', 'pointer')
     .on('mouseenter', function (event, datum) {
-      d3.select(this).attr('stroke', '#a78bfa').attr('stroke-width', 2)
+      d3.select(this).attr('stroke', '#f5b44f').attr('stroke-width', 2)
       tooltip?.show(
-        `<div class="font-semibold text-violet-200">${datum.decade}s · ${datum.genre}</div>
+        `<div class="font-semibold text-[#ffe1b0]">${datum.decade}s &middot; ${datum.genre}</div>
          <div>${datum.count} movie${datum.count === 1 ? '' : 's'}</div>`,
         event,
       )

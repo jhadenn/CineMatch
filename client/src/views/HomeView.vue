@@ -1,28 +1,25 @@
 <template>
-  <div class="pb-14 min-h-[calc(100vh-72px)]">
+  <div class="page-shell min-h-[calc(100vh-110px)] pb-14">
     <section
-      class="relative overflow-hidden min-h-[70vh] border-b border-gray-800"
+      class="hero-stage relative min-h-[72vh] p-5 sm:p-7"
       :style="heroStyle"
     >
-      <div class="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/55" />
-      <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-gray-950/40" />
+      <div class="hero-overlay absolute inset-0" />
+      <div class="hero-spotlight" />
 
-      <div class="relative max-w-7xl mx-auto px-4 pt-6 pb-12 min-h-[70vh] flex flex-col">
-        <div class="mt-auto max-w-2xl space-y-5">
-          <span
-            class="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-semibold border"
-            style="background-color: rgba(124, 58, 237, 0.2); color: #ddd6fe; border-color: rgba(124, 58, 237, 0.55);"
-          >
+      <div class="relative flex min-h-[66vh] flex-col justify-end">
+        <div class="max-w-2xl space-y-5">
+          <span class="glass-pill glass-pill-active px-4 py-2 text-sm font-semibold">
             {{ matchLabel }}
           </span>
 
-          <h1 class="text-4xl md:text-6xl font-bold text-white tracking-tight">
+          <h1 class="font-display text-4xl font-semibold tracking-tight text-white md:text-6xl">
             {{ featuredMovie?.title || 'Featured Movie' }}
           </h1>
 
-          <div class="flex flex-wrap items-center gap-3 text-gray-200">
-            <span class="inline-flex items-center gap-1 text-yellow-400 font-semibold">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <div class="flex flex-wrap items-center gap-3 text-[rgba(235,227,215,0.82)]">
+            <span class="inline-flex items-center gap-1 font-semibold text-[rgba(255,220,170,0.92)]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
               {{ ratingLabel }}
@@ -31,13 +28,13 @@
             <span
               v-for="genre in featuredGenres"
               :key="genre"
-              class="px-2.5 py-1 rounded bg-white/10 border border-white/20 text-sm"
+              class="glass-pill px-3 py-1.5 text-sm text-[rgba(255,244,224,0.78)]"
             >
               {{ genre }}
             </span>
           </div>
 
-          <p class="text-gray-300 text-lg leading-relaxed max-w-xl line-clamp-3">
+          <p class="max-w-xl text-lg leading-relaxed text-[rgba(235,227,215,0.72)]">
             {{ featuredMovie?.overview || 'Find your next favorite movie with personalized recommendations.' }}
           </p>
 
@@ -45,109 +42,72 @@
             <button
               v-if="featuredMovie"
               type="button"
-              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white font-semibold transition-colors bg-[#7c3aed] hover:bg-[#6d28d9] disabled:opacity-60 disabled:cursor-not-allowed"
+              class="glass-button-primary px-5 py-3"
               :disabled="trailerLoading"
               @click="openTrailerModal"
             >
-              <span class="text-xs">▶</span>
-              {{ trailerLoading ? 'Loading Trailer...' : 'Watch Trailer' }}
+              <span>{{ trailerLoading ? 'Loading trailer...' : 'Watch trailer' }}</span>
             </button>
             <button
               v-if="featuredMovie"
               type="button"
-              class="px-5 py-2.5 rounded-lg bg-white/10 text-white font-medium border border-white/20 hover:bg-white/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              class="glass-button-secondary px-5 py-3"
               :disabled="isFeaturedInWatchlist"
               @click="addFeaturedToWatchlist"
             >
-              {{ isFeaturedInWatchlist ? 'In Watchlist' : '+ Add to Watchlist' }}
+              {{ isFeaturedInWatchlist ? 'In watchlist' : '+ Add to watchlist' }}
             </button>
             <RouterLink
               v-if="featuredMovie"
               :to="`/movie/${featuredMovie.id}`"
-              class="px-5 py-2.5 rounded-lg bg-black/40 text-white font-medium border border-white/20 hover:bg-black/60 transition-colors"
+              class="glass-button-ghost px-5 py-3"
             >
-              More Info
+              More info
             </RouterLink>
           </div>
         </div>
       </div>
     </section>
 
-    <div class="max-w-7xl mx-auto px-4 pt-10">
+    <section class="mt-10">
       <div class="mb-6">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300/90">Browse</p>
-        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-white">Trending This Week</h2>
-        <p class="mt-2 text-sm text-gray-400">Fresh picks everyone is watching right now.</p>
+        <p class="section-kicker">Browse</p>
+        <h2 class="mt-3 font-display text-2xl font-semibold text-white sm:text-3xl">Trending This Week</h2>
+        <p class="mt-2 text-sm text-[rgba(225,220,212,0.58)]">Fresh picks everyone is watching right now.</p>
       </div>
 
-      <div class="rounded-2xl border border-violet-500/15 bg-white/[0.02] p-3 sm:p-4">
       <MovieGrid
         :movies="store.trending"
         :loading="store.loading"
-        :enable-infinite-scroll="false"
+        @load-more="store.loadMore"
       />
-      </div>
+    </section>
 
-      <!-- Personalized recommendations (logged-in users only) -->
-      <template v-if="authStore.isAuthenticated">
-        <div class="mt-12 mb-6">
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300/90">For You</p>
+    <template v-if="authStore.isAuthenticated">
+      <section class="mt-12">
+        <div class="mb-6">
+          <p class="section-kicker">For You</p>
+          <h2 class="mt-3 font-display text-2xl font-semibold text-white sm:text-3xl">Picked from your taste profile</h2>
         </div>
-        <div class="rounded-2xl border border-violet-500/15 bg-white/[0.02] p-3 sm:p-4 mb-8">
-          <RecoFeed :limit="10" title="Recommended for You" />
-        </div>
-      </template>
-
-      <div v-if="showPagination" class="mt-8 flex flex-wrap items-center justify-center gap-2">
-        <button
-          type="button"
-          class="px-3 py-1.5 rounded-lg border border-white/10 text-sm text-gray-300 hover:text-white hover:border-violet-400/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          :disabled="store.currentPage === 1 || store.loading"
-          @click="goToPage(store.currentPage - 1)"
-        >
-          Prev
-        </button>
-
-        <button
-          v-for="page in pageNumbers"
-          :key="page"
-          type="button"
-          class="min-w-9 h-9 rounded-lg border text-sm font-medium transition-colors"
-          :class="page === store.currentPage
-            ? 'bg-violet-500/25 text-violet-100 border-violet-400/45'
-            : 'border-white/10 text-gray-300 hover:text-white hover:border-violet-400/40'"
-          :disabled="store.loading"
-          @click="goToPage(page)"
-        >
-          {{ page }}
-        </button>
-
-        <button
-          type="button"
-          class="px-3 py-1.5 rounded-lg border border-white/10 text-sm text-gray-300 hover:text-white hover:border-violet-400/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          :disabled="store.currentPage === store.totalPages || store.loading"
-          @click="goToPage(store.currentPage + 1)"
-        >
-          Next
-        </button>
-      </div>
-    </div>
+        <RecoFeed :limit="10" title="Recommended for You" />
+      </section>
+    </template>
 
     <div
       v-if="isTrailerModalOpen"
-      class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm px-4 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(2,2,2,0.82)] px-4 backdrop-blur-md"
       @click.self="closeTrailerModal"
     >
-      <div class="w-full max-w-4xl rounded-2xl border border-violet-400/25 bg-gray-950/95 p-4 sm:p-5 shadow-2xl shadow-black/40">
-        <div class="mb-3 flex items-center justify-between">
-          <h3 class="text-lg sm:text-xl font-semibold text-white truncate">{{ featuredMovie?.title }} Trailer</h3>
+      <div class="glass-modal w-full max-w-4xl p-4 sm:p-5">
+        <div class="mb-3 flex items-center justify-between gap-4">
+          <h3 class="truncate font-display text-lg font-semibold text-white sm:text-xl">{{ featuredMovie?.title }} Trailer</h3>
           <button
             type="button"
-            class="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-white/10 text-gray-300 hover:text-white hover:border-violet-400/40 transition-colors"
+            class="icon-button h-10 w-10"
             @click="closeTrailerModal"
             aria-label="Close trailer"
           >
-            ×
+            <span class="text-lg leading-none">X</span>
           </button>
         </div>
         <TrailerEmbed :videos="trailerVideos" />
@@ -177,7 +137,6 @@ const trailerLoading = ref(false)
 const trailerVideos = ref([])
 
 onMounted(async () => {
-  // Preserve previously loaded browse results when the user navigates back home.
   if (store._trending.length === 0) {
     await store.loadTrending()
   }
@@ -195,7 +154,7 @@ const heroStyle = computed(() => {
   return image ? { backgroundImage: `url(${image})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { backgroundImage: fallback }
 })
 const ratingLabel = computed(() => featuredMovie.value?.vote_average ? featuredMovie.value.vote_average.toFixed(1) : 'N/A')
-const releaseYear = computed(() => featuredMovie.value?.release_date ? featuredMovie.value.release_date.substring(0, 4) : '—')
+const releaseYear = computed(() => featuredMovie.value?.release_date ? featuredMovie.value.release_date.substring(0, 4) : '--')
 const featuredGenres = computed(() => {
   if (!featuredMovie.value?.genre_ids?.length || !store.genres.length) return []
   const lookup = new Map(store.genres.map(genre => [genre.id, genre.name]))
@@ -204,14 +163,6 @@ const featuredGenres = computed(() => {
 const matchLabel = computed(() => {
   const score = featuredMovie.value?.vote_average ? Math.min(99, Math.round(featuredMovie.value.vote_average * 10)) : 95
   return `${score}% Match For You`
-})
-const showPagination = computed(() => store.trending.length > 0 && store.totalPages > 1)
-const pageNumbers = computed(() => {
-  const total = store.totalPages
-  const current = store.currentPage
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const pages = new Set([1, total, current - 1, current, current + 1])
-  return [...pages].filter(page => page >= 1 && page <= total).sort((a, b) => a - b)
 })
 const isFeaturedInWatchlist = computed(() => {
   if (!featuredMovie.value?.id) return false
@@ -225,11 +176,6 @@ function pickRandomFeaturedMovie() {
   }
   const randomIndex = Math.floor(Math.random() * store.trending.length)
   featuredMovieId.value = store.trending[randomIndex].id
-}
-
-function goToPage(page) {
-  store.goToPage(page)
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 async function addFeaturedToWatchlist() {

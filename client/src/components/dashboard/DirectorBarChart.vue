@@ -91,7 +91,7 @@ function render() {
     .on('mouseenter', function (event, datum) {
       d3.select(this).attr('fill-opacity', 1)
       tooltip?.show(
-        `<div class="font-semibold text-violet-200">${datum.director}</div>
+        `<div class="font-semibold text-[#ffe1b0]">${datum.director}</div>
          <div>${datum.count} movie${datum.count === 1 ? '' : 's'} watched</div>`,
         event,
       )

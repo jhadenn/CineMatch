@@ -1,17 +1,17 @@
 <template>
-  <article class="group rounded-[30px] border border-white/10 bg-white/[0.03] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.24)] transition-colors hover:border-amber-400/25 sm:p-5">
+  <article class="glass-panel group p-4 transition-colors hover:border-[rgba(245,180,79,0.22)] sm:p-5">
     <div class="flex flex-col gap-4 md:flex-row md:items-stretch">
       <div class="flex flex-shrink-0 gap-4">
         <img
           v-if="poster"
           :src="poster"
           :alt="item.title"
-          class="h-32 w-24 rounded-2xl border border-white/10 object-cover sm:h-36 sm:w-28"
+          class="media-frame h-32 w-24 object-cover sm:h-36 sm:w-28"
           loading="lazy"
         />
         <div
           v-else
-          class="flex h-32 w-24 items-center justify-center rounded-2xl border border-white/10 bg-black/35 text-zinc-500 sm:h-36 sm:w-28"
+          class="media-frame flex h-32 w-24 items-center justify-center text-[rgba(188,176,160,0.48)] sm:h-36 sm:w-28"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" />
@@ -24,17 +24,17 @@
           <div class="min-w-0">
             <RouterLink
               :to="`/movie/${item.tmdb_id}`"
-              class="line-clamp-2 text-2xl font-semibold tracking-tight text-white transition-colors hover:text-amber-200"
+              class="line-clamp-2 font-display text-2xl font-semibold tracking-tight text-white transition-colors hover:text-[#ffe8be]"
             >
               {{ item.title }}
             </RouterLink>
 
-            <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-400">
+            <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[rgba(225,220,212,0.58)]">
               <span>{{ releaseYear }}</span>
-              <span aria-hidden="true" class="text-zinc-600">&middot;</span>
+              <span aria-hidden="true" class="text-[rgba(255,255,255,0.16)]">&middot;</span>
               <span>{{ runtimeLabel }}</span>
-              <span aria-hidden="true" class="text-zinc-600">&middot;</span>
-              <span class="inline-flex items-center gap-1 text-amber-300">
+              <span aria-hidden="true" class="text-[rgba(255,255,255,0.16)]">&middot;</span>
+              <span class="inline-flex items-center gap-1 text-[rgba(255,220,170,0.88)]">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
@@ -46,19 +46,19 @@
               <span
                 v-for="genre in genres"
                 :key="`${item.id}-${genre}`"
-                class="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-zinc-300"
+                class="glass-pill px-3 py-1 text-xs text-[rgba(255,244,224,0.74)]"
               >
                 {{ genre }}
               </span>
               <span
                 v-if="!genres.length"
-                class="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-zinc-500"
+                class="glass-pill px-3 py-1 text-xs text-[rgba(184,174,160,0.54)]"
               >
                 Genres unavailable
               </span>
             </div>
 
-            <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-zinc-500">
+            <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[rgba(184,174,160,0.56)]">
               <span>Added {{ addedLabel }}</span>
             </div>
           </div>
@@ -66,7 +66,7 @@
           <div class="flex items-center gap-2 md:flex-col md:items-end">
             <button
               type="button"
-              class="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-500/12 text-emerald-200 transition-colors hover:bg-emerald-500/22 disabled:cursor-not-allowed disabled:opacity-50"
+              class="icon-button icon-button-success h-11 w-11"
               :disabled="isMarkingWatched"
               :title="isMarkingWatched ? 'Marking as watched' : 'Mark watched'"
               aria-label="Mark watched"
@@ -80,10 +80,10 @@
               </svg>
             </button>
 
-            <div class="flex items-center gap-2 opacity-70 md:flex-col">
+            <div class="flex items-center gap-2 opacity-80 md:flex-col">
               <button
                 type="button"
-                class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-300 transition-colors hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                class="icon-button h-9 w-9"
                 :disabled="isFirst || isMarkingWatched"
                 title="Move up"
                 aria-label="Move up"
@@ -95,7 +95,7 @@
               </button>
               <button
                 type="button"
-                class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-zinc-300 transition-colors hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                class="icon-button h-9 w-9"
                 :disabled="isLast || isMarkingWatched"
                 title="Move down"
                 aria-label="Move down"
@@ -109,7 +109,7 @@
 
             <button
               type="button"
-              class="flex h-11 w-11 items-center justify-center rounded-full border border-red-400/20 bg-red-500/10 text-red-200 transition-colors hover:bg-red-500/18 disabled:cursor-not-allowed disabled:opacity-50"
+              class="icon-button icon-button-danger h-11 w-11"
               :disabled="isMarkingWatched"
               title="Remove from watchlist"
               aria-label="Remove from watchlist"
@@ -173,10 +173,5 @@ const addedLabel = computed(() => {
     month: 'short',
     day: 'numeric',
   }).format(parsed)
-})
-
-const queuePosition = computed(() => {
-  const position = Number(props.item.position)
-  return Number.isFinite(position) ? position + 1 : null
 })
 </script>

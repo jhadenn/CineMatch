@@ -1,49 +1,49 @@
 <template>
   <form class="space-y-4" @submit.prevent="submitForm">
     <div>
-      <label for="username" class="mb-1.5 block text-sm text-gray-300">Username</label>
+      <label for="username" class="mb-2 block text-sm text-[rgba(236,229,218,0.82)]">Username</label>
       <input
         id="username"
         v-model.trim="username"
         type="text"
         autocomplete="username"
-        class="w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-white placeholder-gray-500 focus:border-violet-400/70 focus:outline-none"
+        class="glass-input rounded-2xl px-4 py-3"
         placeholder="MovieFan123"
       />
     </div>
 
     <div>
-      <label for="email" class="mb-1.5 block text-sm text-gray-300">Email</label>
+      <label for="email" class="mb-2 block text-sm text-[rgba(236,229,218,0.82)]">Email</label>
       <input
         id="email"
         v-model.trim="email"
         type="email"
         autocomplete="email"
-        class="w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-white placeholder-gray-500 focus:border-violet-400/70 focus:outline-none"
+        class="glass-input rounded-2xl px-4 py-3"
         placeholder="you@example.com"
       />
     </div>
 
     <div>
-      <label for="password" class="mb-1.5 block text-sm text-gray-300">Password</label>
+      <label for="password" class="mb-2 block text-sm text-[rgba(236,229,218,0.82)]">Password</label>
       <input
         id="password"
         v-model="password"
         type="password"
         autocomplete="new-password"
-        class="w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-white placeholder-gray-500 focus:border-violet-400/70 focus:outline-none"
+        class="glass-input rounded-2xl px-4 py-3"
         placeholder="At least 6 characters"
       />
     </div>
 
     <div>
-      <label for="confirmPassword" class="mb-1.5 block text-sm text-gray-300">Confirm password</label>
+      <label for="confirmPassword" class="mb-2 block text-sm text-[rgba(236,229,218,0.82)]">Confirm password</label>
       <input
         id="confirmPassword"
         v-model="confirmPassword"
         type="password"
         autocomplete="new-password"
-        class="w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-white placeholder-gray-500 focus:border-violet-400/70 focus:outline-none"
+        class="glass-input rounded-2xl px-4 py-3"
         placeholder="Re-enter password"
       />
     </div>
@@ -52,7 +52,7 @@
 
     <button
       type="submit"
-      class="w-full rounded-xl bg-[#7c3aed] py-2.5 font-medium text-white hover:bg-[#6d28d9] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      class="glass-button-primary w-full px-4 py-3.5"
       :disabled="submitting"
     >
       {{ submitting ? 'Creating account...' : 'Sign up' }}

@@ -1,196 +1,190 @@
 <template>
-  <div class="min-h-[calc(100vh-72px)] bg-[#050505]">
-    <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-      <header class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            {{ isHistoryView ? 'Watch History' : 'My Watchlist' }}
-          </h1>
-          <p class="mt-2 text-sm text-zinc-400 sm:text-base">
-            {{ isHistoryView
-              ? 'Movies you\'ve finished — the signal your recommendations learn from.'
-              : 'Track and manage the movies queued up for your next watch.' }}
-          </p>
-        </div>
-
-        <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-          <!-- View toggle: a two-button pill with amber accent for the active side. -->
-          <div
-            role="tablist"
-            aria-label="Switch between watchlist and watch history"
-            class="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-1 text-sm font-medium"
-          >
-            <button
-              type="button"
-              role="tab"
-              :aria-selected="!isHistoryView"
-              :class="toggleButtonClass(!isHistoryView)"
-              @click="setView('watchlist')"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 4h12a1 1 0 011 1v15l-7-3-7 3V5a1 1 0 011-1z" />
-              </svg>
-              Watchlist
-            </button>
-            <button
-              type="button"
-              role="tab"
-              :aria-selected="isHistoryView"
-              :class="toggleButtonClass(isHistoryView)"
-              @click="setView('history')"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              History
-            </button>
-          </div>
-
-          <RouterLink
-            to="/search"
-            class="inline-flex items-center justify-center gap-2 rounded-full border border-amber-400/25 bg-amber-500 px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-amber-400"
-          >
-            Browse Movies
-            <span aria-hidden="true">&rarr;</span>
-          </RouterLink>
-        </div>
-      </header>
-
-      <div v-if="activeLoading" class="space-y-6">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div
-            v-for="n in 4"
-            :key="`stat-${n}`"
-            class="h-28 animate-pulse rounded-[28px] border border-white/10 bg-white/[0.03]"
-          />
-        </div>
-        <div class="space-y-5">
-          <div
-            v-for="n in 4"
-            :key="`item-${n}`"
-            class="h-44 animate-pulse rounded-[30px] border border-white/10 bg-white/[0.03]"
-          />
-        </div>
+  <div class="page-shell min-h-[calc(100vh-110px)]">
+    <header class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class="section-kicker">{{ isHistoryView ? 'History' : 'Watchlist' }}</p>
+        <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+          {{ isHistoryView ? 'Watch History' : 'My Watchlist' }}
+        </h1>
+        <p class="mt-3 max-w-2xl text-sm leading-7 text-[rgba(225,220,212,0.62)]">
+          {{ isHistoryView
+            ? 'Movies you have finished and the signal your recommendations learn from.'
+            : 'Track and manage the movies queued up for your next watch.' }}
+        </p>
       </div>
 
-      <div
-        v-else-if="!activeItems.length"
-        class="rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.12),transparent_38%),rgba(255,255,255,0.03)] px-6 py-16 text-center"
-      >
-        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/10 text-amber-200">
-          <svg v-if="!isHistoryView" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 4h12a1 1 0 011 1v15l-7-3-7 3V5a1 1 0 011-1z" />
-          </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+      <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+        <div
+          role="tablist"
+          aria-label="Switch between watchlist and watch history"
+          class="glass-panel-soft inline-flex rounded-full p-1"
+        >
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="!isHistoryView"
+            :class="toggleButtonClass(!isHistoryView)"
+            @click="setView('watchlist')"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 4h12a1 1 0 011 1v15l-7-3-7 3V5a1 1 0 011-1z" />
+            </svg>
+            Watchlist
+          </button>
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="isHistoryView"
+            :class="toggleButtonClass(isHistoryView)"
+            @click="setView('history')"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            History
+          </button>
         </div>
-        <h2 class="text-xl font-semibold text-white">
-          {{ isHistoryView ? 'No watch history yet' : 'Your watchlist is empty' }}
-        </h2>
-        <p class="mt-2 text-zinc-400">
-          {{ isHistoryView
-            ? 'Mark saved movies as watched and they\'ll show up here.'
-            : 'Start adding movies and this queue will turn into your next-night lineup.' }}
-        </p>
+
         <RouterLink
-          v-if="!isHistoryView"
           to="/search"
-          class="mt-6 inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500 px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-amber-400"
+          class="glass-button-primary inline-flex items-center justify-center px-5 py-3 text-sm"
         >
           Browse Movies
-          <span aria-hidden="true">&rarr;</span>
         </RouterLink>
-        <button
-          v-else
-          type="button"
-          class="mt-6 inline-flex items-center gap-2 rounded-full border border-amber-400/25 bg-amber-500 px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-amber-400"
-          @click="setView('watchlist')"
-        >
-          Go to Watchlist
-          <span aria-hidden="true">&rarr;</span>
-        </button>
       </div>
+    </header>
 
-      <div v-else class="space-y-6">
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <article class="rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-            <div class="flex items-center gap-4">
-              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-zinc-400">{{ isHistoryView ? 'Movies Watched' : 'Saved Movies' }}</p>
-                <p class="mt-2 text-4xl font-semibold text-white">{{ activeItems.length }}</p>
-              </div>
-            </div>
-          </article>
-
-          <article class="rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-            <div class="flex items-center gap-4">
-              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-zinc-400">{{ isHistoryView ? 'Watch Time' : 'Watch Time Left' }}</p>
-                <p class="mt-2 text-4xl font-semibold text-white">{{ formatRuntimeStat(totalRuntimeMinutes) }}</p>
-              </div>
-            </div>
-          </article>
-
-          <!-- Stat #3 — "Added/Watched this month" (replaces the old Avg TMDB Rating card). -->
-          <article class="rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-            <div class="flex items-center gap-4">
-              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-fuchsia-500/15 text-fuchsia-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 17l4-4 4 4m0-8H7" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-zinc-400">{{ isHistoryView ? 'Watched This Month' : 'Added This Month' }}</p>
-                <p class="mt-2 text-4xl font-semibold text-white">+{{ activityThisMonth }}</p>
-              </div>
-            </div>
-          </article>
-
-          <article class="rounded-[28px] border border-white/10 bg-white/[0.03] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-            <div class="flex items-center gap-4">
-              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7a4 4 0 118 0c0 1.657-1.79 3.396-3 4.57a1.5 1.5 0 01-2.09 0C9.79 10.396 8 8.657 8 7z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 12v7" />
-                </svg>
-              </div>
-              <div>
-                <p class="text-sm text-zinc-400">Top Genre</p>
-                <p class="mt-2 text-3xl font-semibold text-white">{{ topGenreLabel }}</p>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <p v-if="activeError" class="text-sm text-red-300">{{ activeError }}</p>
-
-        <WatchlistPanel
-          v-if="!isHistoryView"
-          :items="watchlistItems"
-          :marking-item-ids="watchlistStore.markingItemIds"
-          @remove="removeWatchlistItem"
-          @move-item="moveItem"
-          @mark-watched="markWatched"
-        />
-        <HistoryPanel
-          v-else
-          :items="historyItems"
-          :removing-item-ids="historyStore.removingItemIds"
-          @remove="removeHistoryItem"
+    <div v-if="activeLoading" class="space-y-6">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div
+          v-for="n in 4"
+          :key="`stat-${n}`"
+          class="skeleton-panel h-28"
         />
       </div>
-    </section>
+      <div class="space-y-5">
+        <div
+          v-for="n in 4"
+          :key="`item-${n}`"
+          class="skeleton-panel h-44"
+        />
+      </div>
+    </div>
+
+    <div
+      v-else-if="!activeItems.length"
+      class="empty-state-panel px-6 py-16 text-center"
+    >
+      <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-[rgba(255,214,152,0.22)] bg-[rgba(245,180,79,0.12)] text-[rgba(255,220,170,0.88)]">
+        <svg v-if="!isHistoryView" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 4h12a1 1 0 011 1v15l-7-3-7 3V5a1 1 0 011-1z" />
+        </svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h2 class="font-display text-xl font-semibold text-white">
+        {{ isHistoryView ? 'No watch history yet' : 'Your watchlist is empty' }}
+      </h2>
+      <p class="mt-2 text-[rgba(225,220,212,0.62)]">
+        {{ isHistoryView
+          ? 'Mark saved movies as watched and they will show up here.'
+          : 'Start adding movies and this queue will turn into your next-night lineup.' }}
+      </p>
+      <RouterLink
+        v-if="!isHistoryView"
+        to="/search"
+        class="glass-button-primary mt-6 inline-flex px-5 py-3 text-sm"
+      >
+        Browse Movies
+      </RouterLink>
+      <button
+        v-else
+        type="button"
+        class="glass-button-primary mt-6 inline-flex px-5 py-3 text-sm"
+        @click="setView('watchlist')"
+      >
+        Go to Watchlist
+      </button>
+    </div>
+
+    <div v-else class="space-y-6">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <article class="stat-card">
+          <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(245,180,79,0.14)] text-[rgba(255,220,170,0.9)]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-[rgba(225,220,212,0.58)]">{{ isHistoryView ? 'Movies Watched' : 'Saved Movies' }}</p>
+              <p class="mt-2 font-display text-4xl font-semibold text-white">{{ activeItems.length }}</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(125,211,252,0.14)] text-[rgba(186,230,253,0.9)]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-[rgba(225,220,212,0.58)]">{{ isHistoryView ? 'Watch Time' : 'Watch Time Left' }}</p>
+              <p class="mt-2 font-display text-4xl font-semibold text-white">{{ formatRuntimeStat(totalRuntimeMinutes) }}</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(245,180,79,0.14)] text-[rgba(255,220,170,0.9)]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 17l4-4 4 4m0-8H7" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-[rgba(225,220,212,0.58)]">{{ isHistoryView ? 'Watched This Month' : 'Added This Month' }}</p>
+              <p class="mt-2 font-display text-4xl font-semibold text-white">+{{ activityThisMonth }}</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(110,231,183,0.14)] text-[rgba(209,250,229,0.9)]">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7a4 4 0 118 0c0 1.657-1.79 3.396-3 4.57a1.5 1.5 0 01-2.09 0C9.79 10.396 8 8.657 8 7z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 12v7" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm text-[rgba(225,220,212,0.58)]">Top Genre</p>
+              <p class="mt-2 font-display text-3xl font-semibold text-white">{{ topGenreLabel }}</p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <p v-if="activeError" class="text-sm text-red-300">{{ activeError }}</p>
+
+      <WatchlistPanel
+        v-if="!isHistoryView"
+        :items="watchlistItems"
+        :marking-item-ids="watchlistStore.markingItemIds"
+        @remove="removeWatchlistItem"
+        @move-item="moveItem"
+        @mark-watched="markWatched"
+      />
+      <HistoryPanel
+        v-else
+        :items="historyItems"
+        :removing-item-ids="historyStore.removingItemIds"
+        @remove="removeHistoryItem"
+      />
+    </div>
   </div>
 </template>
 
@@ -213,8 +207,6 @@ const historyStore = useHistoryStore()
 const watchlistItems = computed(() => watchlistStore.sortedItems)
 const historyItems = computed(() => historyStore.sortedItems)
 
-// The URL query is the source of truth so the active tab survives reloads and
-// can be deep-linked (e.g. the account dropdown sending users to history).
 const isHistoryView = computed(() => route.query.view === 'history')
 
 const activeItems = computed(() => (isHistoryView.value ? historyItems.value : watchlistItems.value))
@@ -232,8 +224,6 @@ const totalRuntimeMinutes = computed(() =>
   ),
 )
 
-// Count entries whose timestamp falls in the current calendar month. For the
-// watchlist that's `added_at`; for history it's `watched_at`.
 const activityThisMonth = computed(() => {
   const now = new Date()
   const year = now.getFullYear()
@@ -266,10 +256,10 @@ const topGenreLabel = computed(() => {
 })
 
 function toggleButtonClass(isActive) {
-  const base = 'inline-flex items-center gap-2 rounded-full px-4 py-2 transition-colors'
+  const base = 'inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors'
   return isActive
-    ? `${base} bg-amber-500 text-black shadow-sm`
-    : `${base} text-zinc-300 hover:text-white`
+    ? `${base} glass-pill-active`
+    : `${base} glass-pill text-[rgba(255,244,224,0.72)] hover:text-white`
 }
 
 function setView(mode) {
@@ -279,8 +269,6 @@ function setView(mode) {
   } else {
     delete nextQuery.view
   }
-  // `replace` keeps the back-button behavior sane — the tab toggle shouldn't
-  // stack history entries on every click.
   router.replace({ path: route.path, query: nextQuery })
 }
 
@@ -290,13 +278,10 @@ onMounted(() => {
     router.push('/login')
     return
   }
-  // Kick off both stores so switching tabs feels instant instead of refetching.
   watchlistStore.initialize()
   historyStore.initialize()
 })
 
-// Lazily refresh whichever tab the user lands on, in case the other store was
-// populated stale during a previous session.
 watch(isHistoryView, (next) => {
   if (next) historyStore.initialize()
   else watchlistStore.initialize()

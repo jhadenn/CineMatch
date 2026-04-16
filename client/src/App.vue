@@ -1,7 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-950 text-white">
+  <div class="app-shell">
+    <AnimatedBackground />
     <NavBar />
-    <main>
+    <main class="app-main">
       <!-- Route views render inside the shared app chrome. -->
       <RouterView />
     </main>
@@ -9,5 +10,6 @@
 </template>
 
 <script setup>
+import AnimatedBackground from './components/layout/AnimatedBackground.vue'
 import NavBar from './components/layout/NavBar.vue'
 </script>

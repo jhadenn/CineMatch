@@ -1,133 +1,126 @@
 <template>
-  <!-- Error state -->
-  <div v-if="error" class="max-w-7xl mx-auto px-4 py-20 text-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-    <h1 class="text-2xl font-bold text-white mb-2">Movie not found</h1>
-    <p class="text-gray-400 mb-6">We couldn't find the movie you're looking for.</p>
-    <RouterLink to="/" class="inline-block px-5 py-2 bg-indigo-600 rounded-lg text-white hover:bg-indigo-500 transition-colors">
-      Go back home
-    </RouterLink>
-  </div>
-
-  <!-- Loading skeleton -->
-  <div v-else-if="loading" class="animate-pulse">
-    <div class="h-[28rem] bg-gray-800" />
-    <div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      <div class="h-8 bg-gray-700 rounded w-1/3" />
-      <div class="h-4 bg-gray-700 rounded w-2/3" />
-      <div class="h-4 bg-gray-700 rounded w-1/2" />
-      <div class="aspect-video bg-gray-700 rounded-lg" />
-      <div class="flex gap-4">
-        <div v-for="n in 6" :key="n" class="w-28 flex-shrink-0 space-y-2">
-          <div class="aspect-[2/3] bg-gray-700 rounded-lg" />
-          <div class="h-3 bg-gray-700 rounded w-3/4" />
-        </div>
-      </div>
+  <div class="page-shell min-h-[calc(100vh-110px)]">
+    <div v-if="error" class="section-stage-soft mx-auto max-w-3xl px-6 py-16 text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-4 h-16 w-16 text-[rgba(255,214,152,0.42)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h1 class="font-display text-2xl font-semibold text-white">Movie not found</h1>
+      <p class="mt-2 text-[rgba(225,220,212,0.62)]">We couldn't find the movie you're looking for.</p>
+      <RouterLink to="/" class="glass-button-primary mt-6 inline-flex px-5 py-3">
+        Go back home
+      </RouterLink>
     </div>
-  </div>
 
-  <!-- Movie detail -->
-  <div v-else-if="movie">
-    <!-- Hero section -->
-    <div class="relative h-[28rem] overflow-hidden">
-      <img
-        v-if="heroImage"
-        :src="heroImage"
-        :alt="movie.title"
-        class="absolute inset-0 w-full h-full object-cover"
-      />
-      <div v-else class="absolute inset-0 bg-gray-800" />
-      <!-- Gradient overlay -->
-      <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/70 to-gray-950/30" />
-
-      <!-- Hero content -->
-      <div class="relative h-full max-w-7xl mx-auto px-4 flex flex-col justify-end pb-10">
-        <h1 class="text-4xl lg:text-5xl font-bold text-white mb-2">{{ movie.title }}</h1>
-        <p v-if="movie.tagline" class="text-lg text-gray-300 italic mb-4">{{ movie.tagline }}</p>
-
-        <!-- Metadata pills -->
-        <div class="flex flex-wrap items-center gap-3 text-sm">
-          <span class="px-3 py-1 bg-white/10 backdrop-blur rounded-full text-gray-200">
-            {{ releaseYear }}
-          </span>
-          <span v-if="movie.runtime" class="px-3 py-1 bg-white/10 backdrop-blur rounded-full text-gray-200">
-            {{ formatRuntime(movie.runtime) }}
-          </span>
-          <span class="px-3 py-1 bg-white/10 backdrop-blur rounded-full text-gray-200 uppercase">
-            {{ movie.original_language }}
-          </span>
-          <span class="flex items-center gap-1 px-3 py-1 bg-white/10 backdrop-blur rounded-full text-gray-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            {{ movie.vote_average?.toFixed(1) }}
-          </span>
-          <span
-            v-if="matchBadge"
-            :class="[
-              'flex items-center gap-1.5 px-3 py-1 rounded-full border backdrop-blur',
-              matchBadge.tone,
-            ]"
-            :title="`Based on your watch history and watchlist`"
-          >
-            <span class="inline-block w-2 h-2 rounded-full" :class="matchBadge.dot" />
-            {{ matchBadge.label }}
-          </span>
-          <button
-            type="button"
-            class="px-3 py-1 rounded-full border border-violet-400/40 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            :disabled="isInWatchlist"
-            @click="addCurrentMovieToWatchlist"
-          >
-            {{ isInWatchlist ? 'In Watchlist' : '+ Add to Watchlist' }}
-          </button>
+    <div v-else-if="loading" class="space-y-6">
+      <div class="skeleton-panel h-[28rem]" />
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div class="skeleton-panel h-64" />
+        <div class="space-y-4">
+          <div class="skeleton-panel h-24" />
+          <div class="skeleton-panel h-24" />
+          <div class="skeleton-panel h-24" />
         </div>
       </div>
     </div>
 
-    <!-- Body -->
-    <div class="max-w-7xl mx-auto px-4 py-8 space-y-10">
-      <!-- Genre tags -->
-      <div v-if="movie.genres?.length" class="flex flex-wrap gap-2">
-        <RouterLink
-          v-for="genre in movie.genres"
-          :key="genre.id"
-          :to="{ path: '/search', query: { genre: genre.id } }"
-          class="px-3 py-1 text-sm font-medium rounded-lg bg-white/[0.04] text-violet-200 border border-violet-400/30 hover:bg-violet-500/20 hover:border-violet-300/50 transition-colors"
-        >
-          {{ genre.name }}
-        </RouterLink>
-      </div>
+    <div v-else-if="movie" class="space-y-8">
+      <section class="hero-stage relative">
+        <div class="relative min-h-[30rem] overflow-hidden">
+          <img
+            v-if="heroImage"
+            :src="heroImage"
+            :alt="movie.title"
+            class="absolute inset-0 h-full w-full object-cover"
+          />
+          <div v-else class="absolute inset-0 bg-[rgba(255,255,255,0.05)]" />
+          <div class="hero-overlay absolute inset-0" />
+          <div class="hero-spotlight" />
 
-      <!-- Overview -->
-      <div v-if="movie.overview">
-        <h2 class="text-xl font-semibold text-white mb-3">Overview</h2>
-        <p class="text-gray-300 leading-relaxed max-w-3xl">{{ movie.overview }}</p>
-      </div>
+          <div class="relative flex min-h-[30rem] flex-col justify-end px-5 py-8 sm:px-8 sm:py-10">
+            <div class="max-w-4xl">
+              <h1 class="font-display text-4xl font-semibold text-white lg:text-5xl">{{ movie.title }}</h1>
+              <p v-if="movie.tagline" class="mt-3 text-lg italic text-[rgba(225,220,212,0.72)]">{{ movie.tagline }}</p>
 
-      <!-- Trailer -->
-      <div>
-        <h2 class="text-xl font-semibold text-white mb-3">Trailer</h2>
-        <div class="max-w-3xl">
-          <TrailerEmbed :videos="movie.videos?.results || []" />
+              <div class="mt-5 flex flex-wrap items-center gap-3 text-sm text-[rgba(235,227,215,0.82)]">
+                <span class="glass-pill px-3 py-1.5">{{ releaseYear }}</span>
+                <span v-if="movie.runtime" class="glass-pill px-3 py-1.5">{{ formatRuntime(movie.runtime) }}</span>
+                <span class="glass-pill px-3 py-1.5 uppercase">{{ movie.original_language }}</span>
+                <span class="glass-pill px-3 py-1.5 text-[rgba(255,220,170,0.9)]">
+                  <span class="mr-1 inline-block">&#9733;</span>
+                  {{ movie.vote_average?.toFixed(1) }}
+                </span>
+                <span
+                  v-if="matchBadge"
+                  :class="['glass-pill px-3 py-1.5', matchBadge.tone]"
+                  :title="`Based on your watch history and watchlist`"
+                >
+                  <span class="inline-block h-2 w-2 rounded-full" :class="matchBadge.dot" />
+                  {{ matchBadge.label }}
+                </span>
+              </div>
+
+              <div class="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  class="glass-button-primary px-5 py-3"
+                  :disabled="isInWatchlist"
+                  @click="addCurrentMovieToWatchlist"
+                >
+                  {{ isInWatchlist ? 'In watchlist' : '+ Add to watchlist' }}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
+
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)]">
+        <section class="space-y-6">
+          <article class="section-stage-soft p-5 sm:p-6">
+            <div v-if="movie.genres?.length" class="mb-4 flex flex-wrap gap-2">
+              <RouterLink
+                v-for="genre in movie.genres"
+                :key="genre.id"
+                :to="{ path: '/search', query: { genre: genre.id } }"
+                class="glass-pill px-3 py-1.5 text-sm text-[rgba(255,244,224,0.78)]"
+              >
+                {{ genre.name }}
+              </RouterLink>
+            </div>
+
+            <div v-if="movie.overview">
+              <p class="section-kicker">Overview</p>
+              <p class="mt-3 max-w-3xl text-[1.02rem] leading-8 text-[rgba(225,220,212,0.72)]">{{ movie.overview }}</p>
+            </div>
+          </article>
+
+          <article class="section-stage-soft p-5 sm:p-6">
+            <p class="section-kicker">Trailer</p>
+            <div class="mt-4 max-w-3xl">
+              <TrailerEmbed :videos="movie.videos?.results || []" />
+            </div>
+          </article>
+        </section>
+
+        <section class="space-y-6">
+          <article v-if="movie.credits?.cast?.length" class="section-stage-soft p-5 sm:p-6">
+            <p class="section-kicker">Cast</p>
+            <div class="mt-4">
+              <CastCarousel :cast="movie.credits.cast" />
+            </div>
+          </article>
+        </section>
       </div>
 
-      <!-- Cast -->
-      <div v-if="movie.credits?.cast?.length">
-        <h2 class="text-xl font-semibold text-white mb-3">Cast</h2>
-        <CastCarousel :cast="movie.credits.cast" />
-      </div>
-
-      <!-- More Like This -->
-      <div v-if="similarMovies.length">
-        <h2 class="text-xl font-semibold text-white mb-3">More Like This</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <section v-if="similarMovies.length" class="pt-2">
+        <div class="mb-5">
+          <p class="section-kicker">Queue next</p>
+          <h2 class="mt-3 font-display text-2xl font-semibold text-white">More like this</h2>
+        </div>
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
           <MovieCard v-for="m in similarMovies" :key="m.id" :movie="m" />
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -156,14 +149,13 @@ const match = ref(null)
 
 const heroImage = computed(() => {
   if (!movie.value) return null
-  // Prefer the wide backdrop for the hero, then fall back to the poster.
   if (movie.value.backdrop_path) return `https://image.tmdb.org/t/p/w1280${movie.value.backdrop_path}`
   if (movie.value.poster_path) return `https://image.tmdb.org/t/p/w1280${movie.value.poster_path}`
   return null
 })
 
 const releaseYear = computed(() =>
-  movie.value?.release_date ? movie.value.release_date.substring(0, 4) : '—'
+  movie.value?.release_date ? movie.value.release_date.substring(0, 4) : '--'
 )
 
 const similarMovies = computed(() =>
@@ -181,21 +173,21 @@ const matchBadge = computed(() => {
   if (percent >= 80) {
     return {
       label: `${percent}% Match for you`,
-      tone: 'border-emerald-400/40 bg-emerald-500/20 text-emerald-100',
-      dot: 'bg-emerald-300',
+      tone: 'border-[rgba(110,231,183,0.22)] bg-[rgba(110,231,183,0.12)] text-[#d1fae5]',
+      dot: 'bg-[#a7f3d0]',
     }
   }
   if (percent >= 55) {
     return {
       label: `${percent}% Match for you`,
-      tone: 'border-violet-400/40 bg-violet-500/20 text-violet-100',
-      dot: 'bg-violet-300',
+      tone: 'border-[rgba(245,180,79,0.3)] bg-[rgba(245,180,79,0.14)] text-[#fff0d0]',
+      dot: 'bg-[#ffd89d]',
     }
   }
   return {
     label: `${percent}% Match for you`,
-    tone: 'border-amber-400/30 bg-amber-500/15 text-amber-100',
-    dot: 'bg-amber-300',
+    tone: 'border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.06)] text-[rgba(255,244,224,0.78)]',
+    dot: 'bg-[rgba(255,244,224,0.72)]',
   }
 })
 
@@ -212,13 +204,11 @@ async function fetchMatchFor(id) {
   try {
     match.value = await getMovieMatch(id)
   } catch {
-    // Match is purely additive UI — fail silently so the detail page still renders.
     match.value = null
   }
 }
 
 async function fetchMovie(id) {
-  // Reset local state before each request so route changes show a clean loader.
   loading.value = true
   error.value = false
   movie.value = null
@@ -235,8 +225,6 @@ async function fetchMovie(id) {
   }
 }
 
-// When the user saves/removes/watches a movie, their taste profile has
-// changed — refresh the match so the pill stays accurate.
 watch(
   () => [watchlistStore.items.length, historyStore.items.length, recommendationsStore.lastToken],
   () => {
@@ -252,8 +240,6 @@ async function addCurrentMovieToWatchlist() {
   }
 }
 
-// Re-run the fetch when the route changes so clicking "More Like This" cards
-// updates the current detail page instead of forcing a full page reload.
 watch(() => route.params.id, (id) => {
   if (id) {
     fetchMovie(id)
