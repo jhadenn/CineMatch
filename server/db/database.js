@@ -16,11 +16,20 @@ db.pragma('foreign_keys = ON');
 const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
 db.exec(schema);
 
+/**
+ * Check whether a startup migration is still needed.
+ * The app uses lightweight additive migrations so local SQLite databases from
+ * older project versions continue to boot after schema changes.
+ */
 function hasColumn(tableName, columnName) {
   const columns = db.prepare(`PRAGMA table_info(${tableName})`).all();
   return columns.some((column) => column.name === columnName);
 }
 
+/**
+ * Apply backward-compatible SQLite migrations that cannot be expressed by
+ * CREATE TABLE IF NOT EXISTS for databases that already exist.
+ */
 function runMigrations() {
   const migrations = [];
 

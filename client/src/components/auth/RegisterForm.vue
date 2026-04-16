@@ -1,3 +1,8 @@
+<!--
+  Stateless account creation form.
+  Keeps password confirmation and basic required-field validation local before
+  emitting a backend-ready registration payload.
+-->
 <template>
   <form class="space-y-4" @submit.prevent="submitForm">
     <div>

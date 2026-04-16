@@ -1,3 +1,8 @@
+<!--
+  Single watched-movie row.
+  Formats stored history metadata into the same visual language as watchlist
+  rows while exposing only a remove event to the parent store layer.
+-->
 <template>
   <article class="glass-panel group p-4 transition-colors hover:border-[rgba(245,180,79,0.22)] sm:p-5">
     <div class="flex flex-col gap-4 md:flex-row md:items-stretch">

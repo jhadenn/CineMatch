@@ -1,3 +1,8 @@
+<!--
+  Stateless login form.
+  Owns local field validation, then emits credentials so the parent view/store
+  can handle authentication and navigation.
+-->
 <template>
   <form class="space-y-4" @submit.prevent="submitForm">
     <div>

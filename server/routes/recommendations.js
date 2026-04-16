@@ -14,6 +14,9 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 // In-memory genre map: id → name. Populated once on first request.
 let genreMap = null;
 
+/**
+ * Small TMDB wrapper for recommendation-specific backend calls.
+ */
 async function tmdbFetch(path, params = {}) {
   const query = new URLSearchParams(params);
   query.set('api_key', process.env.TMDB_API_KEY);
@@ -23,6 +26,9 @@ async function tmdbFetch(path, params = {}) {
   return res.json();
 }
 
+/**
+ * Cache TMDB's genre id map for the lifetime of the server process.
+ */
 async function loadGenreMap() {
   if (genreMap) return genreMap;
   const data = await tmdbFetch('genre/movie/list');
@@ -44,6 +50,7 @@ const selectWatchlistProfileStmt = db.prepare(
 );
 
 function parseGenres(value) {
+  // Profile rows store genres as JSON text in SQLite.
   if (Array.isArray(value)) return value;
   if (typeof value !== 'string' || !value.trim()) return [];
   try {
@@ -54,6 +61,7 @@ function parseGenres(value) {
 }
 
 function toMovieSummary(movie) {
+  // Trim TMDB payloads to the fields shared by recommendation cards/scoring.
   return {
     tmdb_id: movie.id,
     title: movie.title,
@@ -92,6 +100,7 @@ async function fetchSeededCandidates(seedIds) {
 }
 
 function pickSeedIds(profileMovies) {
+  // Weighted signals let watched titles outrank watchlist-only titles.
   const seen = new Set();
   const ids = [];
 
@@ -108,6 +117,8 @@ function pickSeedIds(profileMovies) {
 }
 
 async function buildCandidates(excludeIds, profileMovies = []) {
+  // Blend personalized candidate pools with general discovery pools, then
+  // dedupe before expensive embedding scoring happens.
   const gMap = await loadGenreMap();
   const seedIds = pickSeedIds(profileMovies);
 
@@ -154,6 +165,7 @@ async function buildCandidates(excludeIds, profileMovies = []) {
 }
 
 async function fetchPopularFallback(excludeIds = new Set()) {
+  // Keep the UI populated when personalized scoring or candidate building fails.
   const fallback = await tmdbFetch('movie/popular');
   return (fallback.results || [])
     .filter((movie) => !excludeIds.has(movie.id))
@@ -233,6 +245,7 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 function loadProfileMovies(userId) {
+  // Watched movies are stronger taste signals than movies merely saved for later.
   const watchedMovies = selectHistoryStmt.all(userId).map((row) => ({
     ...row,
     genres: parseGenres(row.genres),

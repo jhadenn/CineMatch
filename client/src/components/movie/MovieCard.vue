@@ -1,3 +1,8 @@
+<!--
+  Reusable catalog/recommendation card.
+  Normalizes the TMDB poster/rating/year fields into a compact linkable card
+  that can be used by search, home, and recommendation grids.
+-->
 <template>
   <RouterLink
     :to="`/movie/${movie.id}`"

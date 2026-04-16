@@ -8,6 +8,8 @@ import RecommendationsView from '../views/RecommendationsView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 
+// Route metadata is intentionally small: auth-only pages are guarded here,
+// while each page still initializes the stores it needs for direct visits.
 const routes = [
   { path: '/',               component: HomeView },
   { path: '/search',         component: SearchView },
@@ -28,6 +30,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
+  // Use the same token key as the auth store and API wrapper.
   if (to.meta.requiresAuth && !localStorage.getItem('token')) {
     return '/login'
   }

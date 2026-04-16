@@ -6,6 +6,10 @@ import { useRecommendationsStore } from './recommendations.js'
 const TOKEN_KEY = 'token'
 const USER_KEY = 'cinematch_user'
 
+/**
+ * Convert low-level fetch/API errors into messages the login/register screens
+ * can show without each view duplicating backend connectivity handling.
+ */
 function humanizeAuthError(error, fallback) {
   const raw = String(error?.message || '')
   if (!raw) return fallback
@@ -30,6 +34,11 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    /**
+     * Restore persisted auth state once per app session.
+     * The token stays in its historical `token` key because api.js reads that
+     * same key before attaching Authorization headers.
+     */
     initialize() {
       if (this.initialized) return
       this.initialized = true
@@ -44,6 +53,9 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /**
+     * Keep Pinia state and localStorage in sync after a successful auth call.
+     */
     persistAuth(token, user) {
       this.token = token
       this.user = user
@@ -51,6 +63,10 @@ export const useAuthStore = defineStore('auth', {
       localStorage.setItem(USER_KEY, JSON.stringify(user))
     },
 
+    /**
+     * Sign in through the backend and return a small result object so forms can
+     * stay presentation-focused instead of catching exceptions.
+     */
     async login({ email, password }) {
       this.loading = true
       try {
@@ -67,6 +83,9 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /**
+     * Create a user account and persist the returned token exactly like login.
+     */
     async register({ username, email, password }) {
       this.loading = true
       try {
@@ -83,6 +102,10 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /**
+     * Clear auth state plus dependent user-specific stores to prevent stale
+     * watch history or recommendation data from appearing after logout.
+     */
     logout() {
       const historyStore = useHistoryStore()
       const recommendationsStore = useRecommendationsStore()

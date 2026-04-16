@@ -1,3 +1,8 @@
+<!--
+  Discovery landing page.
+  Uses the weekly trending feed both as a browse grid and as the source for a
+  rotating cinematic hero with trailer/watchlist actions.
+-->
 <template>
   <div class="page-shell min-h-[calc(100vh-110px)] pb-14">
     <section
@@ -170,6 +175,7 @@ const isFeaturedInWatchlist = computed(() => {
 })
 
 function pickRandomFeaturedMovie() {
+  // Keep the hero fresh without introducing a separate editorial data source.
   if (!store.trending.length) {
     featuredMovieId.value = null
     return
@@ -190,6 +196,7 @@ async function openTrailerModal() {
   if (!featuredMovie.value) return
   trailerLoading.value = true
   try {
+    // Trending payloads do not include videos, so fetch full details lazily.
     const details = await getMovieDetails(featuredMovie.value.id)
     trailerVideos.value = details?.videos?.results || []
     isTrailerModalOpen.value = true

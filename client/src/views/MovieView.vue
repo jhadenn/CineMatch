@@ -1,3 +1,8 @@
+<!--
+  Movie detail page.
+  Hydrates a TMDB movie by route id, then layers in CineMatch-specific state
+  such as watchlist membership and personalized match percentage.
+-->
 <template>
   <div class="page-shell min-h-[calc(100vh-110px)]">
     <div v-if="error" class="section-stage-soft mx-auto max-w-3xl px-6 py-16 text-center">
@@ -198,6 +203,7 @@ function formatRuntime(minutes) {
 }
 
 async function fetchMatchFor(id) {
+  // Match scoring is authenticated and optional; failures should not block the detail page.
   match.value = null
   const token = localStorage.getItem('token')
   if (!token || !id) return
@@ -228,6 +234,7 @@ async function fetchMovie(id) {
 watch(
   () => [watchlistStore.items.length, historyStore.items.length, recommendationsStore.lastToken],
   () => {
+    // Watchlist/history changes alter the taste profile, so refresh the pill.
     if (movie.value?.id) fetchMatchFor(movie.value.id)
   }
 )

@@ -1,3 +1,4 @@
+<!-- Dedicated authenticated page for the shared recommendation feed component. -->
 <template>
   <div class="page-shell min-h-[calc(100vh-110px)]">
     <div class="mb-6">

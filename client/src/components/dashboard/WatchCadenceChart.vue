@@ -1,3 +1,8 @@
+<!--
+  Watch Cadence dashboard chart.
+  Draws monthly watched-count trends from the gap-filled timeline returned by
+  the history stats endpoint.
+-->
 <template>
   <div ref="containerRef" class="relative w-full">
     <svg ref="svgRef" class="block w-full" role="img" aria-label="Watch history timeline" />

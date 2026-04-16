@@ -1,3 +1,8 @@
+<!--
+  Mood Preferences dashboard chart.
+  Scores are already computed by the backend, so rendering only handles polar
+  layout, labels, and hover tooltips.
+-->
 <template>
   <div ref="containerRef" class="relative w-full">
     <svg ref="svgRef" class="block w-full" role="img" aria-label="Mood preferences radar chart" />

@@ -1,11 +1,14 @@
+<!--
+  Shared top navigation.
+  Combines route-aware nav pills, a desktop search shortcut, and account menu
+  state while keeping auth initialization close to the persistent shell.
+-->
 <template>
   <header class="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4 lg:px-6">
     <nav class="glass-nav-shell flex w-full items-center gap-3 px-3 py-3 sm:px-4 lg:px-5">
-      <RouterLink to="/" class="flex items-center gap-3 rounded-full px-2 py-1.5 text-white transition-colors hover:text-[#fff5e3]">
-        <span class="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(245,180,79,0.16)] text-[#ffdba3] shadow-[0_10px_24px_rgba(245,180,79,0.16)]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" />
-          </svg>
+      <RouterLink to="/" aria-label="CineMatch home" class="flex items-center gap-3 rounded-full px-2 py-1.5 text-white transition-colors hover:text-[#fff5e3]">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[rgba(255,255,255,0.12)] bg-[#120d12] shadow-[0_10px_24px_rgba(245,180,79,0.16)]">
+          <img :src="cinematchLogo" alt="" class="h-full w-full object-contain" />
         </span>
         <span class="hidden sm:block">
           <span class="block font-display text-lg font-semibold tracking-[-0.03em] text-white">CineMatch</span>
@@ -121,6 +124,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import cinematchLogo from '../../assets/cinematch-logo.png'
 import { useAuthStore } from '../../stores/auth.js'
 import { useHistoryStore } from '../../stores/history.js'
 import { useWatchlistStore } from '../../stores/watchlist.js'

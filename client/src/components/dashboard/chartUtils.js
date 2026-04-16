@@ -26,10 +26,16 @@ export const FONT_FAMILY =
 
 export const DEFAULT_MARGIN = { top: 16, right: 20, bottom: 36, left: 44 }
 
+/**
+ * Return a repeatable palette color for arbitrary-length chart series.
+ */
 export function categoricalColor(index) {
   return CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length]
 }
 
+/**
+ * Create a positioned tooltip element scoped to a chart container.
+ */
 export function createTooltip(container) {
   const el = document.createElement('div')
   el.className =
@@ -67,6 +73,10 @@ export function createTooltip(container) {
   }
 }
 
+/**
+ * Observe chart container size changes with a window-resize fallback for older
+ * browsers/environments that do not expose ResizeObserver.
+ */
 export function observeSize(container, callback) {
   if (typeof ResizeObserver === 'undefined') {
     const handler = () => callback(container.getBoundingClientRect())
@@ -83,6 +93,9 @@ export function observeSize(container, callback) {
   return () => observer.disconnect()
 }
 
+/**
+ * Convert YYYY-MM keys from the API into compact localized axis labels.
+ */
 export function formatMonth(key) {
   if (typeof key !== 'string' || !/^\d{4}-\d{2}$/.test(key)) return key
   const [year, month] = key.split('-').map(Number)
@@ -90,11 +103,18 @@ export function formatMonth(key) {
   return date.toLocaleString(undefined, { month: 'short', year: 'numeric', timeZone: 'UTC' })
 }
 
+/**
+ * Convert YYYY-MM keys to UTC Date objects so D3 time scales avoid local-zone
+ * month drift around daylight-saving boundaries.
+ */
 export function parseMonth(key) {
   const [year, month] = key.split('-').map(Number)
   return new Date(Date.UTC(year, month - 1, 1))
 }
 
+/**
+ * Apply the dashboard's shared axis color and font treatment to D3 axes.
+ */
 export function styleAxis(selection) {
   selection.selectAll('text')
     .attr('fill', AXIS_COLOR)

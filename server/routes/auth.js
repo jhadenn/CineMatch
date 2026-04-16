@@ -5,12 +5,16 @@ const jwt = require('jsonwebtoken');
 const db = require('../db/database');
 const requireAuth = require('../middleware/auth');
 
+/**
+ * Issue the short user payload consumed by the frontend and auth middleware.
+ * JWT_SECRET must stay server-side because it signs every authenticated request.
+ */
 function createToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, username: user.username },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
-  );
+);
 }
 
 // POST /api/auth/register

@@ -34,6 +34,10 @@ const MOOD_GENRE_MAP = {
   'Light-hearted': ['Comedy', 'Animation', 'Family', 'Music', 'Adventure'],
 };
 
+/**
+ * Normalize scalar metadata before it leaves or enters SQLite so dashboard
+ * aggregation never has to special-case empty strings, zeros, or malformed ids.
+ */
 function normalizeReleaseYear(value) {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : null;
@@ -54,6 +58,7 @@ function normalizeVoteAverage(value) {
 }
 
 function parseGenres(value) {
+  // Genres are stored as JSON text in SQLite but may already be arrays in tests.
   if (Array.isArray(value)) return value;
   if (typeof value !== 'string' || !value.trim()) return [];
   try {
@@ -87,6 +92,7 @@ function normalizeGenres(value) {
 }
 
 function toResponseItem(row) {
+  // API consumers should always receive parsed genres and nullable numbers.
   return {
     ...row,
     genres: normalizeGenres(parseGenres(row.genres)),
@@ -96,6 +102,9 @@ function toResponseItem(row) {
   };
 }
 
+/**
+ * Fetch missing movie metadata from TMDB for older or sparse history rows.
+ */
 async function fetchTmdbMetadata(tmdbId) {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) {
@@ -119,6 +128,11 @@ async function fetchTmdbMetadata(tmdbId) {
   };
 }
 
+/**
+ * Backfill sparse history rows in memory and persist any newly resolved fields.
+ * This keeps old records useful for dashboards and recommendations without a
+ * one-off migration that would require every user to have TMDB data upfront.
+ */
 async function hydrateHistoryRows(rows, userId) {
   const hydratedRows = [];
 
@@ -196,6 +210,7 @@ function extractMonthKey(watchedAt) {
 }
 
 function fillMonthGaps(monthCounts) {
+  // Charts need zero-count months so the timeline spacing is continuous.
   if (monthCounts.size === 0) return [];
 
   const sortedKeys = [...monthCounts.keys()].sort();
@@ -218,6 +233,7 @@ function fillMonthGaps(monthCounts) {
 }
 
 function buildMoodPreferences(moodCounts) {
+  // Convert raw genre hits into normalized scores for the radar chart.
   const moods = Object.keys(MOOD_GENRE_MAP);
   const maxCount = Math.max(0, ...moods.map((mood) => moodCounts.get(mood) || 0));
 
@@ -232,6 +248,7 @@ function buildMoodPreferences(moodCounts) {
 }
 
 function buildStats(rows) {
+  // This is the single backend aggregation contract used by DashboardView.
   const totalWatched = rows.length;
   if (totalWatched === 0) {
     return {

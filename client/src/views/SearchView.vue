@@ -1,3 +1,8 @@
+<!--
+  Search and browse page.
+  Keeps the URL query, filter panel, and movie store in sync so searches can be
+  bookmarked and genre links from movie detail pages land with state applied.
+-->
 <template>
   <div class="page-shell min-h-[calc(100vh-110px)]">
     <section class="section-stage overflow-hidden p-5 sm:p-6">
@@ -111,6 +116,7 @@ watch(
 )
 
 function applyRouteState() {
+  // Route query is the source of truth for deep links and browser navigation.
   const q = typeof route.query.q === 'string' ? route.query.q : ''
   const genre = parseGenreQuery(route.query.genre)
   const genreChanged = store.filters.genre !== genre
@@ -146,6 +152,7 @@ function parseGenreQuery(value) {
 }
 
 function syncRouteQuery(q, genre) {
+  // Avoid redundant router.replace calls; they can retrigger the route watcher.
   const nextQuery = {}
   const trimmed = q.trim()
   if (trimmed) nextQuery.q = trimmed

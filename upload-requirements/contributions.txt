@@ -7,19 +7,17 @@ CineMatch - Team Contributions
 [Abinan Suthakaran] (100921932)
 - [Watchlist Feature]
 - [Watch History Feature]
-- [Bug Fixes]
 
 [Omar Abdalla] (100921010)
 - [Taste Dashboard Page]
 - [Contribution 2]
 
 [Nimdula Perera] (100917197)
-- [Contribution 1]
-- [Contribution 2]
+- [Authentication]
 
 [Zubair Rashid] (100922761)
-- [Contribution 1]
-- [Contribution 2]
+- [Movie Detail Page]
+- [Demo Video Editing]
 
 
 Shared / team-wide work

@@ -1,3 +1,8 @@
+<!--
+  Decorative app-wide background layer.
+  Marked aria-hidden because all meaningful page content is rendered above it
+  by route views and layout components.
+-->
 <template>
   <div class="ambient-background" aria-hidden="true">
     <div class="ambient-grid" />

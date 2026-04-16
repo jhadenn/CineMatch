@@ -1,3 +1,8 @@
+<!--
+  Single queued-movie row.
+  Presents reorder, remove, and mark-watched actions without mutating the store
+  directly; parent views decide how each emitted action is persisted.
+-->
 <template>
   <article class="glass-panel group p-4 transition-colors hover:border-[rgba(245,180,79,0.22)] sm:p-5">
     <div class="flex flex-col gap-4 md:flex-row md:items-stretch">

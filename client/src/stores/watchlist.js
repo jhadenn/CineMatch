@@ -4,6 +4,10 @@ import { useMoviesStore } from './movies.js'
 import { useRecommendationsStore } from './recommendations.js'
 import { getMovieDetails } from '../services/tmdb.js'
 
+/**
+ * Watchlist and history payloads can come from TMDB, SQLite rows, or cached UI
+ * state. These small normalizers keep the store's public item shape stable.
+ */
 function normalizeReleaseYear(value) {
   const parsed = Number.parseInt(value, 10)
   return Number.isFinite(parsed) ? parsed : null
@@ -66,6 +70,7 @@ function extractDirector(movie) {
 }
 
 async function resolveGenreNames(movie) {
+  // Search results only include genre ids, so consult the shared genre cache.
   const directGenres = normalizeGenres(movie?.genres)
   if (directGenres.length) return directGenres
 
@@ -128,6 +133,10 @@ export const useWatchlistStore = defineStore('watchlist', {
   },
 
   actions: {
+    /**
+     * Recommendations depend on both saved and watched titles, so write actions
+     * refresh the feed after they successfully change the user's profile.
+     */
     async refreshRecommendations() {
       const recommendationsStore = useRecommendationsStore()
       const token = localStorage.getItem('token')
@@ -140,6 +149,10 @@ export const useWatchlistStore = defineStore('watchlist', {
       await recommendationsStore.fetch(true)
     },
 
+    /**
+     * Drop all user-specific state. Called when auth disappears or a request is
+     * rejected as unauthorized.
+     */
     clearState() {
       this.items = []
       this.markingItemIds = []
@@ -148,6 +161,9 @@ export const useWatchlistStore = defineStore('watchlist', {
       this.lastToken = null
     },
 
+    /**
+     * Load the watchlist once per token unless the caller asks for a refresh.
+     */
     async initialize(force = false) {
       const token = localStorage.getItem('token')
       if (!token) {
@@ -187,6 +203,10 @@ export const useWatchlistStore = defineStore('watchlist', {
       }
     },
 
+    /**
+     * Persist a TMDB movie into the ordered watchlist.
+     * The backend hydrates any missing metadata before returning the created row.
+     */
     async addMovie(movie) {
       const token = localStorage.getItem('token')
       if (!token) return { added: false, reason: 'unauthorized' }
@@ -277,6 +297,8 @@ export const useWatchlistStore = defineStore('watchlist', {
           director: extractDirector(details),
         }
 
+        // Move the item through history first, then remove it from the queue.
+        // A duplicate history row still counts as success for the user's action.
         try {
           await api.post('/history', payload)
         } catch (error) {
@@ -315,6 +337,7 @@ export const useWatchlistStore = defineStore('watchlist', {
       this.items = next.map((item, index) => ({ ...item, position: index }))
 
       try {
+        // Optimistic UI keeps reordering instant; refetch if persistence fails.
         await api.patch('/watchlist/order', {
           items: this.items.map(item => ({ id: item.id, position: item.position })),
         })

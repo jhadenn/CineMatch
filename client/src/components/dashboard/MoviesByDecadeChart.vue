@@ -1,3 +1,8 @@
+<!--
+  Movies by Decade dashboard chart.
+  Redraws from props on data and container-size changes because D3 writes
+  directly into the SVG instead of relying on Vue's template diff.
+-->
 <template>
   <div ref="containerRef" class="relative w-full">
     <svg ref="svgRef" class="block w-full" role="img" aria-label="Movies by decade bar chart" />

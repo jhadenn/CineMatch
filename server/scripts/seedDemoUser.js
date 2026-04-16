@@ -16,6 +16,8 @@ const DEMO_USER = {
   password: 'password',
 };
 
+// Seed titles are resolved through TMDB so demo data stays aligned with real ids,
+// posters, genres, and embedding text rather than hard-coded mock metadata.
 const WATCH_HISTORY_SEEDS = [
   { title: 'Akira', releaseYear: 1988, watchedAt: '2025-09-14 20:00:00' },
   { title: 'Ghost in the Shell', releaseYear: 1995, watchedAt: '2025-09-29 20:00:00' },
@@ -92,6 +94,10 @@ function requireEnv(name) {
   }
 }
 
+/**
+ * Strip punctuation/diacritics before matching TMDB search results to seed
+ * titles, which protects the script from small title formatting differences.
+ */
 function normalizeTitle(value) {
   return String(value || '')
     .normalize('NFKD')
@@ -141,6 +147,9 @@ function extractDirector(credits) {
   return (credits?.crew || []).find((person) => person.job === 'Director')?.name || null;
 }
 
+/**
+ * Local TMDB wrapper used only by the seeding script.
+ */
 async function tmdbFetch(route, params = {}) {
   const query = new URLSearchParams(params);
   query.set('api_key', process.env.TMDB_API_KEY);
@@ -153,6 +162,10 @@ async function tmdbFetch(route, params = {}) {
   return response.json();
 }
 
+/**
+ * Resolve one human-readable seed title into the normalized movie payload used
+ * by both watch history and watchlist rows.
+ */
 async function resolveTmdbMovie(seed) {
   const searchPayload = await tmdbFetch('search/movie', {
     query: seed.title,
@@ -197,6 +210,10 @@ async function resolveTmdbMovie(seed) {
   };
 }
 
+/**
+ * Resolve history and watchlist seeds sequentially so TMDB/API failures point
+ * at the exact title that could not be matched.
+ */
 async function resolveSeedMovies() {
   const historyMovies = [];
   for (const seed of WATCH_HISTORY_SEEDS) {
@@ -262,6 +279,10 @@ const seedUserTransaction = db.transaction((payload) => {
   return user;
 });
 
+/**
+ * Precompute embeddings for the seeded movies so demo recommendations are ready
+ * immediately after the script completes.
+ */
 async function warmEmbeddings(movies) {
   for (const movie of movies) {
     await getEmbedding({

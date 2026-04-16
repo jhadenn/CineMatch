@@ -1,3 +1,8 @@
+<!--
+  Combined watchlist/history page.
+  A query-string tab keeps the legacy watch history URL shareable while both
+  lists can reuse summary cards and row components.
+-->
 <template>
   <div class="page-shell min-h-[calc(100vh-110px)]">
     <header class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -225,6 +230,7 @@ const totalRuntimeMinutes = computed(() =>
 )
 
 const activityThisMonth = computed(() => {
+  // Each tab uses a different timestamp column but the month-count logic is shared.
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth()
@@ -239,6 +245,7 @@ const activityThisMonth = computed(() => {
 })
 
 const topGenreLabel = computed(() => {
+  // Tie-break alphabetically so the label is stable when genres have equal counts.
   const counts = new Map()
 
   for (const item of activeItems.value) {

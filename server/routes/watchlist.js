@@ -23,6 +23,9 @@ const updateWatchlistMetadataStmt = db.prepare(
   'UPDATE watchlist SET release_year = ?, genres = ?, runtime = ?, vote_average = ? WHERE id = ? AND user_id = ?'
 );
 
+/**
+ * Append new items after the current highest saved position for the user.
+ */
 function getNextPosition(userId) {
   const row = db
     .prepare('SELECT COALESCE(MAX(position), -1) AS maxPosition FROM watchlist WHERE user_id = ?')
@@ -30,6 +33,10 @@ function getNextPosition(userId) {
   return Number(row?.maxPosition ?? -1) + 1;
 }
 
+/**
+ * Normalize metadata before persistence and response serialization so the
+ * frontend can trust nullable numbers and deduplicated genre names.
+ */
 function normalizeReleaseYear(value) {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : null;
@@ -78,6 +85,7 @@ function normalizeGenres(value) {
 }
 
 function parseStoredGenres(value) {
+  // SQLite stores JSON text, but callers/tests may pass an array directly.
   if (Array.isArray(value)) return normalizeGenres(value);
   if (typeof value !== 'string' || !value.trim()) return [];
 
@@ -93,6 +101,7 @@ function serializeGenres(genres) {
 }
 
 function toResponseItem(item) {
+  // Public watchlist rows always expose parsed genres and normalized metadata.
   return {
     ...item,
     release_year: normalizeReleaseYear(item.release_year),
@@ -102,6 +111,9 @@ function toResponseItem(item) {
   };
 }
 
+/**
+ * Retrieve TMDB metadata when a saved movie arrives from a sparse search result.
+ */
 async function fetchTmdbMetadata(tmdbId) {
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) {
@@ -123,6 +135,10 @@ async function fetchTmdbMetadata(tmdbId) {
   };
 }
 
+/**
+ * Prefer client-provided metadata when it is complete, otherwise fill gaps from
+ * TMDB and keep any lookup failure non-fatal to the watchlist action.
+ */
 async function resolveWatchlistMetadata({ tmdbId, releaseYear, genres, runtime, voteAverage }) {
   const normalizedReleaseYear = normalizeReleaseYear(releaseYear);
   const normalizedGenres = normalizeGenres(genres);
@@ -162,6 +178,10 @@ async function resolveWatchlistMetadata({ tmdbId, releaseYear, genres, runtime, 
   }
 }
 
+/**
+ * Ensure an existing row has the metadata needed by UI stats and embeddings,
+ * persisting any backfilled fields before returning the normalized item.
+ */
 async function hydrateWatchlistItem(item, userId) {
   const storedReleaseYear = normalizeReleaseYear(item.release_year);
   const storedGenres = parseStoredGenres(item.genres);

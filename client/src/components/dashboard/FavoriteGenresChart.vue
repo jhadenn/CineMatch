@@ -1,3 +1,7 @@
+<!--
+  Favorite Genres dashboard chart.
+  Renders the backend genre breakdown as a donut chart with a compact legend.
+-->
 <template>
   <div ref="containerRef" class="relative w-full">
     <svg ref="svgRef" class="block w-full" role="img" aria-label="Genre breakdown donut chart" />

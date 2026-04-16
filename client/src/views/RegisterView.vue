@@ -1,3 +1,8 @@
+<!--
+  Registration page wrapper.
+  New users are sent back to login after account creation so they exercise the
+  same persisted-auth path as returning users.
+-->
 <template>
   <div class="page-shell-narrow min-h-[calc(100vh-120px)]">
     <div class="glass-panel-strong mx-auto max-w-md overflow-hidden p-6 sm:p-8">

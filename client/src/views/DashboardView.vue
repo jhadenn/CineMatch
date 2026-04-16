@@ -1,3 +1,8 @@
+<!--
+  Authenticated taste dashboard page.
+  Loads pre-aggregated watch-history stats from the API and delegates chart
+  drawing to focused dashboard components.
+-->
 <template>
   <div class="page-shell min-h-[calc(100vh-110px)]">
     <header class="mb-8">
@@ -130,7 +135,7 @@
               {{ stats.genreBreakdown.length }} tracked
             </span>
           </div>
-          <GenrePieChart :data="stats.genreBreakdown" />
+          <FavoriteGenresChart :data="stats.genreBreakdown" />
         </article>
 
         <article class="glass-panel p-6">
@@ -138,7 +143,7 @@
             <h2 class="font-display text-2xl font-semibold text-white">Mood Preferences</h2>
             <p class="mt-1 text-sm text-[rgba(225,220,212,0.58)]">A genre-driven read on the moods your recent watches lean toward.</p>
           </div>
-          <MoodRadarChart :data="stats.moodPreferences" />
+          <MoodPreferencesChart :data="stats.moodPreferences" />
         </article>
 
         <article class="glass-panel p-6 lg:col-span-2">
@@ -151,7 +156,7 @@
               {{ stats.timeline.length }} months
             </span>
           </div>
-          <TimelineChart :data="stats.timeline" />
+          <WatchCadenceChart :data="stats.timeline" />
         </article>
 
         <article class="glass-panel p-6 lg:col-span-2">
@@ -164,7 +169,7 @@
               {{ stats.moviesByDecade.length }} decades
             </span>
           </div>
-          <DecadeBarChart :data="stats.moviesByDecade" />
+          <MoviesByDecadeChart :data="stats.moviesByDecade" />
         </article>
       </div>
     </div>
@@ -176,10 +181,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
 import api from '../services/api.js'
-import GenrePieChart from '../components/dashboard/GenrePieChart.vue'
-import TimelineChart from '../components/dashboard/TimelineChart.vue'
-import DecadeBarChart from '../components/dashboard/DecadeBarChart.vue'
-import MoodRadarChart from '../components/dashboard/MoodRadarChart.vue'
+import FavoriteGenresChart from '../components/dashboard/FavoriteGenresChart.vue'
+import MoodPreferencesChart from '../components/dashboard/MoodPreferencesChart.vue'
+import WatchCadenceChart from '../components/dashboard/WatchCadenceChart.vue'
+import MoviesByDecadeChart from '../components/dashboard/MoviesByDecadeChart.vue'
 import { formatRating, formatRuntimeStat } from '../utils/formatters.js'
 
 const router = useRouter()

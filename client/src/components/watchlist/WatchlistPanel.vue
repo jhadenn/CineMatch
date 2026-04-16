@@ -1,3 +1,8 @@
+<!--
+  Thin list wrapper for watchlist rows.
+  It translates row positions into move events while each WatchlistItem stays
+  focused on presenting one movie and its actions.
+-->
 <template>
   <section class="space-y-5">
     <WatchlistItem

@@ -1,3 +1,8 @@
+<!--
+  Login page wrapper.
+  Keeps layout and navigation concerns here while LoginForm owns only field
+  validation and credential submission events.
+-->
 <template>
   <div class="page-shell-narrow min-h-[calc(100vh-120px)]">
     <div class="glass-panel-strong mx-auto max-w-md overflow-hidden p-6 sm:p-8">
