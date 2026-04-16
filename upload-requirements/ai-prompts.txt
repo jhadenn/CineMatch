@@ -1,13 +1,13 @@
 CineMatch - AI Prompt Log
 
 Entry 1
-Tool: [ChatGPT / Claude / Copilot / etc.]
-Date: [YYYY-MM-DD]
-Purpose: [What problem you were solving]
-Prompt: [Paste the exact prompt]
-Output used: [What part of the answer/code/design was used]
-Files or features affected: [List files/features]
-Manual edits after AI output: [What you changed yourself]
+Tool: ChatGPT 
+Date: [2026-04-15]
+Purpose: Create a demo account to populate taste dashboard
+Prompt: create a demo user that has populated / hydrated data across watch history and watchlists so i can demo my recommendation engine and taste dashboard? then give me the user credentials to log in 
+Output used: seedDemoUser.js
+Files or features affected: SQLite database
+Manual edits after AI output: username, password, movies
 
 Entry 2
 Tool:
