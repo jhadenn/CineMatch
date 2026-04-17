@@ -15,7 +15,7 @@
       </RouterLink>
 
       <div class="hidden md:flex items-center gap-2 lg:gap-2.5 text-xs lg:text-sm font-medium mx-auto">
-        <RouterLink to="/" :class="navLinkClass(isDiscoverActive)">
+        <RouterLink to="/search" :class="navLinkClass(isDiscoverActive)">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h3a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm9 0a2 2 0 012-2h3a2 2 0 012 2v5a2 2 0 01-2 2h-3a2 2 0 01-2-2V6zm0 9a2 2 0 012-2h3a2 2 0 012 2v3a2 2 0 01-2 2h-3a2 2 0 01-2-2v-3z" />
           </svg>
@@ -136,7 +136,7 @@ const searchQuery = ref('')
 const isAccountMenuOpen = ref(false)
 const accountMenuRef = ref(null)
 const accountButtonRef = ref(null)
-const isDiscoverActive = computed(() => route.path === '/' || route.path.startsWith('/search') || route.path.startsWith('/movie/'))
+const isDiscoverActive = computed(() => route.path.startsWith('/search') || route.path.startsWith('/movie/'))
 const accountInitial = computed(() => {
   const label = authStore.user?.username || authStore.user?.email || ''
   return label ? label.charAt(0).toUpperCase() : ''

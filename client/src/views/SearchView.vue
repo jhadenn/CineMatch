@@ -46,7 +46,7 @@
     </section>
 
     <div v-if="searchQuery.trim()" class="mt-6">
-      <span class="glass-pill px-4 py-2 text-sm text-[rgba(255,244,224,0.82)]">{{ resultText }}</span>
+      <span ref="resultBadgeRef" class="glass-pill px-4 py-2 text-sm text-[rgba(255,244,224,0.82)]">{{ resultText }}</span>
     </div>
     <div v-else class="mt-8 mb-5">
       <p class="section-kicker">Trending</p>
@@ -54,7 +54,7 @@
       <p class="mt-2 text-sm text-[rgba(225,220,212,0.58)]">Fresh picks everyone is watching right now.</p>
     </div>
 
-    <div class="mt-5">
+    <div ref="movieGridRef" class="mt-5">
       <MovieGrid
         :movies="displayedMovies"
         :loading="store.loading"
@@ -79,6 +79,8 @@ const router = useRouter()
 const searchQuery = ref('')
 const filtersOpen = ref(true)
 const filtersPanelRef = ref(null)
+const resultBadgeRef = ref(null)
+const movieGridRef = ref(null)
 
 const displayedMovies = computed(() =>
   searchQuery.value.trim() ? store.searchResults : store.trending
@@ -94,10 +96,6 @@ const resultText = computed(() => {
 onMounted(async () => {
   await store.fetchGenres()
   applyRouteState()
-  await nextTick()
-  if (filtersPanelRef.value) {
-    $(filtersPanelRef.value).show()
-  }
 })
 
 watch(searchQuery, (q) => {
@@ -106,6 +104,18 @@ watch(searchQuery, (q) => {
 
 watch(() => store.filters.genre, (genre) => {
   syncRouteQuery(searchQuery.value, genre)
+})
+
+// Flash the result count badge whenever a new batch of results arrives.
+watch(() => store.totalResults, () => {
+  if (!resultBadgeRef.value) return
+  $(resultBadgeRef.value)
+    .stop(true)
+    .css({ opacity: 0, transform: 'translateY(-6px)' })
+    .animate({ opacity: 1 }, {
+      duration: 260,
+      step(now) { $(this).css('transform', `translateY(${(1 - now) * -6}px)`) },
+    })
 })
 
 watch(
@@ -175,6 +185,13 @@ function onSearch(query) {
     store.clearSearch()
     if (store._trending.length === 0) store.loadTrending()
   }
+
+  // Smooth-scroll to the results grid after the next DOM tick.
+  nextTick(() => {
+    if (!movieGridRef.value) return
+    const top = $(movieGridRef.value).offset()?.top ?? 0
+    $('html, body').stop(true).animate({ scrollTop: top - 24 }, 420)
+  })
 }
 
 function onFilterUpdate(updates) {

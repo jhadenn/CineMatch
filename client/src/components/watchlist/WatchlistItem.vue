@@ -4,7 +4,14 @@
   directly; parent views decide how each emitted action is persisted.
 -->
 <template>
-  <article class="glass-panel group p-4 transition-colors hover:border-[rgba(245,180,79,0.22)] sm:p-5">
+  <article
+    :class="[
+      'glass-panel group p-4 transition-all sm:p-5 cursor-grab active:cursor-grabbing',
+      isDragOver
+        ? 'border-[rgba(245,180,79,0.5)] bg-[rgba(245,180,79,0.06)] scale-[1.01]'
+        : 'hover:border-[rgba(245,180,79,0.22)]',
+    ]"
+  >
     <div class="flex flex-col gap-4 md:flex-row md:items-stretch">
       <div class="flex flex-shrink-0 gap-4">
         <img
@@ -141,6 +148,7 @@ const props = defineProps({
   isFirst: { type: Boolean, default: false },
   isLast: { type: Boolean, default: false },
   isMarkingWatched: { type: Boolean, default: false },
+  isDragOver: { type: Boolean, default: false },
 })
 
 defineEmits(['remove', 'move-up', 'move-down', 'mark-watched'])

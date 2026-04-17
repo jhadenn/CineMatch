@@ -10,7 +10,6 @@ CineMatch - Team Contributions
 
 [Omar Abdalla] (100921010)
 - [Taste Dashboard Page]
-- [Contribution 2]
 
 [Nimdula Perera] (100917197)
 - [Authentication]

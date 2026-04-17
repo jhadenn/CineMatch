@@ -329,9 +329,4 @@ router.patch('/order', requireAuth, (req, res) => {
   }
 });
 
-// GET /api/watchlist/share/:token
-router.get('/share/:token', (req, res) => {
-  return res.status(501).json({ error: 'Not implemented yet' });
-});
-
 module.exports = router;
